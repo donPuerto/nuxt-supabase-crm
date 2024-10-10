@@ -1,0 +1,124 @@
+{
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": "always",
+     },
+     "emmet.includeLanguages": {
+      "postcss": "css"
+    },
+    // ESLint
+    "eslint.validate": [
+      "javascript",
+      "javascriptreact",
+      "typescript",
+      "typescriptreact",
+      "vue",
+      "html",
+      "markdown",
+      "json",
+      "jsonc",
+      "yaml",
+      "toml"
+    ],
+     "eslint.format.enable": true,
+    "[vue]": {
+      "editor.defaultFormatter": "dbaeumer.vscode-eslint",
+     
+    },
+    "[javascript]": {
+      "editor.defaultFormatter": "dbaeumer.vscode-eslint"
+    },
+    "[typescript]": {
+      "editor.defaultFormatter": "dbaeumer.vscode-eslint"
+    },
+    "volar.format.initialIndent": {
+      "html": true
+    },
+    "volar.completion.autoImportComponent": false,
+    "volar.codeLens.scriptSetupTools": true,
+    "volar.completion.preferredTagNameCase": "pascal",
+    "typescript.tsdk": "node_modules/typescript/lib",
+    "eslint.codeAction.showDocumentation": {
+      "enable": true
+    },
+    // "eslint.quiet": true,
+    // Silent the stylistic rules in you IDE, but still auto fix them
+  
+    "eslint.rules.customizations": [
+      {
+        "rule": "style/*",
+        "severity": "off"
+      },
+      {
+        "rule": "format/*",
+        "severity": "off"
+      },
+      {
+        "rule": "*-indent",
+        "severity": "off"
+      },
+      {
+        "rule": "*-spacing",
+        "severity": "off"
+      },
+      {
+        "rule": "*-spaces",
+        "severity": "off"
+      },
+      {
+        "rule": "*-order",
+        "severity": "off"
+      },
+      {
+        "rule": "*-dangle",
+        "severity": "off"
+      },
+      {
+        "rule": "*-newline",
+        "severity": "off"
+      },
+      {
+        "rule": "*quotes",
+        "severity": "off"
+      },
+      {
+        "rule": "*semi",
+        "severity": "off"
+      }
+    ],
+    // JSON
+    // "[json]": {
+    //   "editor.defaultFormatter": "vscode.json-language-features",
+    //   "editor.formatOnSave": true
+    // },
+    // TailwindCSS
+    "files.associations": {
+      "*.vue": "vue",
+      "*.css": "tailwindcss",   
+    },
+    "editor.quickSuggestions": {
+      "strings": true,
+      "comments": "on"
+    },
+    "tailwindCSS.experimental.classRegex": [
+      [
+        "ui:\\s*{([^)]*)\\s*}",
+        "[\"'`]([^\"'`]*).*?[\"'`]"
+      ],
+      [
+        "cva\\(([^)]*)\\)",
+        "[\"'`]([^\"'`]*).*?[\"'`]"
+      ],
+      [
+        "cx\\(([^)]*)\\)",
+        "(?:'|\"|`)([^']*)(?:'|\"|`)"
+      ],
+      [
+        "tv\\(([^)(]*(?:\\([^)(]*(?:\\([^)(]*(?:\\([^)(]*\\)[^)(]*)*\\)[^)(]*)*\\)[^)(]*)*)\\)",
+        "\"(.*?)\""
+      ],
+      "tw`(.*?)`",
+      "tw\\('(.*?)'\\)",
+      "tw\\(\\s*('(.*?)'|\"(.*?)\")\\s*\\)"
+    ]
+  }

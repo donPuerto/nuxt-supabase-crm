@@ -4,12 +4,14 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   ssr: true,
   modules: [
+    'radix-vue/nuxt',
     '@nuxt/devtools',
     "@nuxtjs/tailwindcss",
     "@nuxtjs/color-mode",
     "@vueuse/nuxt",
     "@nuxt/icon",
-    "@nuxtjs/supabase"
+    "@nuxtjs/supabase",
+    "@nuxt/eslint"
   ],
 
   supabase: {
