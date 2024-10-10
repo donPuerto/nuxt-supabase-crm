@@ -12,6 +12,7 @@ export default defineNuxtConfig({
     '@nuxt/icon',
     '@nuxtjs/supabase',
     '@nuxt/eslint',
+    '@vee-validate/nuxt',
   ],
 
   supabase: {
