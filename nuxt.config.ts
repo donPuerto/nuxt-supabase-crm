@@ -6,36 +6,36 @@ export default defineNuxtConfig({
   modules: [
     'radix-vue/nuxt',
     '@nuxt/devtools',
-    "@nuxtjs/tailwindcss",
-    "@nuxtjs/color-mode",
-    "@vueuse/nuxt",
-    "@nuxt/icon",
-    "@nuxtjs/supabase",
-    "@nuxt/eslint"
+    '@nuxtjs/tailwindcss',
+    '@nuxtjs/color-mode',
+    '@vueuse/nuxt',
+    '@nuxt/icon',
+    '@nuxtjs/supabase',
+    '@nuxt/eslint',
   ],
 
   supabase: {
     url: process.env.SUPABASE_URL,
     key: process.env.SUPABASE_KEY,
-    redirect: false
+    redirect: false,
   },
 
   tailwindcss: {
-    exposeConfig: true
+    exposeConfig: true,
   },
 
   colorMode: {
-    classSuffix: ""
+    classSuffix: '',
   },
 
   imports: {
     imports: [{
-      from: "tailwind-variants",
-      name: "tv"
+      from: 'tailwind-variants',
+      name: 'tv',
     }, {
-      from: "tailwind-variants",
-      name: "VariantProps",
-      type: true
-    }]
-  }
-})
+      from: 'tailwind-variants',
+      name: 'VariantProps',
+      type: true,
+    }],
+  },
+});
