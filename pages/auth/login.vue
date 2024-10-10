@@ -1,21 +1,56 @@
 <script lang="ts" setup>
 import { ref } from 'vue';
 import { useAuth } from '~/composables/useAuth';
+import { useToast } from '@/composables/useToast';
+import * as yup from 'yup';
+import { useForm } from 'vee-validate';
 
 definePageMeta({
   layout: 'auth',
 });
 
-const { signInWithOAuth, loading, error } = useAuth();
+const { toast } = useToast();
+const { start, finish } = useLoadingIndicator();
 
-const email = ref('');
-const password = ref('');
+const { meta, handleSubmit, defineField, errors } = useForm({
+  validationSchema: yup.object({
+    email: yup.string().email('Please enter a valid email address').matches(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, 'Please enter a valid email address').required().label('Email'),
+    password: yup.string().required().label('Password'),
+  }),
+});
+
+const [email, emailAttrs] = defineField('email');
+const [password, passwordAttrs] = defineField('password');
+
+const { signInWithEmailAndPassword, signInWithOAuth, loading, error } = useAuth();
+
 const rememberMe = ref(false);
 
-const handleEmailLogin = () => {
-  // Implement email/password login logic here
-  console.log('Email login:', email.value, password.value, 'Remember me:', rememberMe.value);
-};
+const handleEmailLogin = handleSubmit(async (values, { resetForm }) => {
+  const { email, password } = values;
+  loading.value = true;
+  start();
+  try {
+    await signInWithEmailAndPassword(email, password);
+    toast({
+      title: 'Signed in successfully',
+      description: 'Welcome to the platform.',
+      variant: 'success',      
+    });
+
+    resetForm();
+  } catch (error) {
+    toast({
+      title: 'An Error Occurred',
+      description: (error as Error)?.message || 'Failed to sign in. Please try again later.',
+      variant: 'destructive',      
+    });
+  }
+  finally {
+    loading.value = false;
+    finish();
+  }
+});
 
 const handleSocialLogin = (provider: 'github' | 'google' | 'facebook') => {
   signInWithOAuth(provider);
@@ -37,21 +72,23 @@ const handleSocialLogin = (provider: 'github' | 'google' | 'facebook') => {
         <UiLabel for="email" class="block text-sm font-medium text-foreground mb-1">Email</UiLabel>
         <UiInput
           id="email"
+          v-bind="emailAttrs"
           v-model="email"
           type="email"
-          required
-          placeholder="you@example.com"
+          placeholder="you@email.com"
         />
+        <span v-if="errors.email" class="text-destructive text-sm pt-1">{{ errors.email }}</span>
       </div>
       <div>
         <UiLabel for="password" class="block text-sm font-medium text-foreground mb-1">Password</UiLabel>
         <UiInput
           id="password"
+          v-bind="passwordAttrs"
           v-model="password"
           type="password"
-          required
           placeholder="••••••••"
         />
+        <span v-if="errors.password" class="text-destructive text-sm pt-1">{{ errors.password }}</span>
       </div>
       <div class="flex items-center justify-between">
         <div class="flex items-center">
@@ -66,7 +103,12 @@ const handleSocialLogin = (provider: 'github' | 'google' | 'facebook') => {
           <a href="#" class="text-primary hover:underline">Forgot password?</a>
         </div>
       </div>
-      <UiButton type="submit" class="w-full ">
+      <UiButton 
+        type="submit" 
+        class="w-full"
+        :disabled="!meta.touched"
+        :loading="loading"
+      >
         Sign in
       </UiButton>
     </form>
@@ -86,22 +128,9 @@ const handleSocialLogin = (provider: 'github' | 'google' | 'facebook') => {
         :disabled="loading"
         @click="handleSocialLogin('google')"
       >
-        <Icon name="logos:google-icon" class="w-5 h-5 mr-2" /> Google
+        <Icon name="Google" :size="18" class="mr-2" /> Google
       </button>
-      <button 
-        class="flex-1 bg-card hover:bg-accent text-foreground rounded-md px-4 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2" 
-        :disabled="loading"
-        @click="handleSocialLogin('github')"
-      >
-        <Icon name="logos:github-icon" class="w-5 h-5 mr-2" /> GitHub
-      </button>
-      <button 
-        class="flex-1 bg-card hover:bg-accent text-foreground rounded-md px-4 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2" 
-        :disabled="loading"
-        @click="handleSocialLogin('facebook')"
-      >
-        <Icon name="logos:facebook" class="w-5 h-5 mr-2" /> Facebook
-      </button>
+
     </div>
 
     <p v-if="error" class="text-destructive text-sm text-center">{{ error }}</p>

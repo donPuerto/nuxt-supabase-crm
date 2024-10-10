@@ -8,6 +8,17 @@ export const useAuth = () => {
 
   const isAuthenticated = computed(() => !!user.value);
 
+  const signInWithEmailAndPassword = async (email: string, password: string) => {
+    loading.value = true;
+    error.value = '';
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    if (signInError) error.value = signInError.message;
+    loading.value = false;
+  };
+  
   const signInWithOAuth = async (provider: 'github' | 'google' | 'facebook') => {
     loading.value = true;
     error.value = '';
@@ -34,6 +45,7 @@ export const useAuth = () => {
     loading,
     error,
     isAuthenticated,
+    signInWithEmailAndPassword,
     signInWithOAuth,
     signOut,
   };

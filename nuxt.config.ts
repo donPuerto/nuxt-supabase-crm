@@ -10,10 +10,13 @@ export default defineNuxtConfig({
     '@nuxtjs/color-mode',
     '@nuxt/fonts',
     '@vueuse/nuxt',
-    '@nuxt/icon',
+    // '@nuxt/icon',
     '@nuxtjs/supabase',
     '@nuxt/eslint',
     '@vee-validate/nuxt',
+  ],
+  plugins: [
+    
   ],
 
   supabase: {
@@ -39,5 +42,18 @@ export default defineNuxtConfig({
       name: 'VariantProps',
       type: true,
     }],
+  },
+
+  vite: {
+    plugins: [
+      {
+        name: 'vite-plugin-svg-raw',
+        transform(code, id) {
+          if (id.endsWith('.svg')) {
+            return `export default ${JSON.stringify(code)}`;
+          }
+        },
+      },
+    ],
   },
 });

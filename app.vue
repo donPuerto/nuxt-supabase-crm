@@ -5,10 +5,12 @@ const useIdFunction = () => useId() || '';
 <template>
   <div>
     <ConfigProvider :use-id="useIdFunction">
+      <NuxtLoadingIndicator />
       <NuxtLayout>
         <NuxtPage />
       </NuxtLayout>
     </ConfigProvider>
+    <UiToastToaster />
     
   </div>
 </template>
