@@ -8,8 +8,15 @@ export default defineNuxtConfig({
     "@nuxtjs/tailwindcss",
     "@nuxtjs/color-mode",
     "@vueuse/nuxt",
-    "@nuxt/icon"
+    "@nuxt/icon",
+    "@nuxtjs/supabase"
   ],
+
+  supabase: {
+    url: process.env.SUPABASE_URL,
+    key: process.env.SUPABASE_KEY,
+    redirect: false
+  },
 
   tailwindcss: {
     exposeConfig: true
