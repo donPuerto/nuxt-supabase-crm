@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { ref } from 'vue';
 import { useAuth } from '~/composables/useAuth';
 import { useToast } from '@/composables/useToast';
 import * as yup from 'yup';
@@ -159,5 +158,7 @@ const handleSocialLogin = (providerName: AuthSocialProvider) => {
 </template>
 
 <style scoped>
-
+.ui-button .icon {
+  @apply !hidden md:!inline-block;
+}
 </style>

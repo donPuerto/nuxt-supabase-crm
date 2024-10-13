@@ -2,7 +2,7 @@
 export default defineNuxtConfig({
   compatibilityDate: '2024-04-03',
   devtools: { enabled: true, componentInspector: false },
-  ssr: true,
+  ssr: false,
   modules: [
     'radix-vue/nuxt',
     '@nuxt/devtools',

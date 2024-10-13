@@ -12,10 +12,25 @@ definePageMeta({
 const { toast } = useToast();
 const { start, finish } = useLoadingIndicator();
 
+const passwordRequirements = [
+  { regex: /.{8,}/, text: 'At least 8 characters long' },
+  { regex: /[A-Z]/, text: 'At least 1 capital letter' },
+  { regex: /[a-z]/, text: 'At least 1 lowercase letter' },
+  { regex: /[!@#$%^&*(),.?":{}|<>]/, text: 'At least 1 special character' },
+  { regex: /\d/, text: 'At least 1 numeric character' },
+];
+
 const { meta, handleSubmit, defineField, errors } = useForm({
   validationSchema: yup.object({
     email: yup.string().email('Please enter a valid email address').matches(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, 'Please enter a valid email address').required().label('Email'),
-    password: yup.string().min(8, 'Password must be at least 8 characters').required().label('Password'),
+    password: yup.string()
+      .min(8, 'Password must be at least 8 characters')
+      .matches(/[A-Z]/, 'Password must contain at least 1 capital letter')
+      .matches(/[a-z]/, 'Password must contain at least 1 lowercase letter')
+      .matches(/[!@#$%^&*(),.?":{}|<>]/, 'Password must contain at least 1 special character')
+      .matches(/\d/, 'Password must contain at least 1 numeric character')
+      .required()
+      .label('Password'),
     confirmPassword: yup.string().oneOf([yup.ref('password')], 'Passwords must match').required().label('Confirm Password'),
   }),
 });
@@ -23,6 +38,14 @@ const { meta, handleSubmit, defineField, errors } = useForm({
 const [email, emailAttrs] = defineField('email');
 const [password, passwordAttrs] = defineField('password');
 const [confirmPassword, confirmPasswordAttrs] = defineField('confirmPassword');
+
+const metRequirements = computed(() => 
+  password.value
+    ? passwordRequirements.filter(req => req.regex.test(password.value))
+    : [],
+);
+
+const passwordStrength = computed(() => metRequirements.value.length);
 
 const { signUp, loading, error, signInWithOAuth } = useAuth();
 
@@ -94,8 +117,22 @@ const handleSocialLogin = (providerName: AuthSocialProvider) => {
           v-model="password"
           type="password"
           placeholder="••••••••"
-          autocomplete
         />
+        <transition-group name="fade" class="mt-2 space-y-1">
+          <p
+            v-for="req in metRequirements"
+            :key="req.text" 
+            class="text-xs text-success"
+          >
+            {{ req.text }}
+          </p>
+        </transition-group>
+        <div class="mt-2 h-1 bg-muted rounded-full overflow-hidden">
+          <div
+            class="h-full bg-primary transition-all duration-300 ease-in-out" 
+            :style="{ width: `${(passwordStrength / passwordRequirements.length) * 100}%` }"
+          />
+        </div>
         <span v-if="errors.password" class="text-destructive text-sm pt-1">{{ errors.password }}</span>
       </div>
       <div>
@@ -113,7 +150,7 @@ const handleSocialLogin = (providerName: AuthSocialProvider) => {
       <UiButton 
         type="submit" 
         class="w-full"
-        :disabled="!meta.touched"
+        :disabled="!meta.touched || passwordStrength < passwordRequirements.length"
         :loading="loading"
       >
         Create Account
@@ -151,3 +188,12 @@ const handleSocialLogin = (providerName: AuthSocialProvider) => {
     <p v-if="error" class="text-destructive text-sm text-center">{{ error }}</p>
   </div>
 </template>
+
+<style scoped>
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.5s ease;
+}
+.fade-enter-from, .fade-leave-to {
+  opacity: 0;
+}
+</style>
