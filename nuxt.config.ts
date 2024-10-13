@@ -1,7 +1,7 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   compatibilityDate: '2024-04-03',
-  devtools: { enabled: true },
+  devtools: { enabled: true, componentInspector: false },
   ssr: true,
   modules: [
     'radix-vue/nuxt',
@@ -10,14 +10,24 @@ export default defineNuxtConfig({
     '@nuxtjs/color-mode',
     '@nuxt/fonts',
     '@vueuse/nuxt',
-    // '@nuxt/icon',
+    '@nuxt/icon',
     '@nuxtjs/supabase',
     '@nuxt/eslint',
     '@vee-validate/nuxt',
+    '@morev/vue-transitions/nuxt',
   ],
   plugins: [
-    
+
   ],
+  veeValidate: {
+    autoImports: true,
+    componentNames: {
+      Form: 'VeeForm',
+      Field: 'VeeField',
+      FieldArray: 'VeeFieldArray',
+      ErrorMessage: 'VeeErrorMessage',
+    },
+  },
 
   supabase: {
     url: process.env.SUPABASE_URL,
@@ -43,17 +53,5 @@ export default defineNuxtConfig({
       type: true,
     }],
   },
-
-  vite: {
-    plugins: [
-      {
-        name: 'vite-plugin-svg-raw',
-        transform(code, id) {
-          if (id.endsWith('.svg')) {
-            return `export default ${JSON.stringify(code)}`;
-          }
-        },
-      },
-    ],
-  },
+ 
 });
