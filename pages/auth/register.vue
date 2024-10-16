@@ -1,9 +1,10 @@
-<script lang="ts" setup>
+<script setup lang="ts">
 import { useAuth } from '~/composables/useAuth';
 import { useToast } from '@/composables/useToast';
 import * as yup from 'yup';
 import {  AUTH_SOCIAL_PROVIDERS } from '~/utils/constants';
 import type { AuthSocialProvider } from '@/types';
+import { ref, computed, onMounted } from 'vue';
 
 definePageMeta({
   layout: 'auth',
@@ -13,14 +14,19 @@ const { toast } = useToast();
 const { start, finish } = useLoadingIndicator();
 
 const passwordRequirements = [
-  { regex: /.{8,}/, text: 'At least 8 characters long' },
-  { regex: /[A-Z]/, text: 'At least 1 capital letter' },
-  { regex: /[a-z]/, text: 'At least 1 lowercase letter' },
-  { regex: /[!@#$%^&*(),.?":{}|<>]/, text: 'At least 1 special character' },
-  { regex: /\d/, text: 'At least 1 numeric character' },
+  { regex: /.{8,}/, text: '8 characters long' },
+  { regex: /[A-Z]/, text: '1 capital letter' },
+  { regex: /[a-z]/, text: '1 lowercase letter' },
+  { regex: /[!@#$%^&*(),.?":{}|<>]/, text: '1 special character' },
+  { regex: /\d/, text: '1 numeric character' },
 ];
 
 const { meta, handleSubmit, defineField, errors } = useForm({
+  initialValues: {
+    email: 'don.puerto.1003@gmail.com',
+    password: 'Siemens$$1003',
+    confirmPassword: 'Siemens$$1003',
+  },
   validationSchema: yup.object({
     email: yup.string().email('Please enter a valid email address').matches(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, 'Please enter a valid email address').required().label('Email'),
     password: yup.string()
@@ -62,6 +68,7 @@ const onSubmit = handleSubmit(async (values) => {
     });
     // You might want to redirect the user or clear the form here
   } catch (error) {
+    
     toast({
       title: 'An Error Occurred',
       description: (error as Error)?.message || 'Failed to register. Please try again later.',
@@ -85,6 +92,17 @@ const handleSocialLogin = (providerName: AuthSocialProvider) => {
     });
   }
 };
+
+const showMeter = ref(false);
+
+onMounted(() => {
+  // Set showMeter to true after a short delay to allow for transition
+  setTimeout(() => {
+    showMeter.value = true;
+  }, 0);
+  
+});
+
 </script>
 
 <template>
@@ -117,22 +135,27 @@ const handleSocialLogin = (providerName: AuthSocialProvider) => {
           v-model="password"
           type="password"
           placeholder="••••••••"
+          autocomplete
         />
-        <transition-group name="fade" class="mt-2 space-y-1">
-          <p
-            v-for="req in metRequirements"
-            :key="req.text" 
-            class="text-xs text-success"
-          >
-            {{ req.text }}
-          </p>
-        </transition-group>
-        <div class="mt-2 h-1 bg-muted rounded-full overflow-hidden">
-          <div
-            class="h-full bg-primary transition-all duration-300 ease-in-out" 
-            :style="{ width: `${(passwordStrength / passwordRequirements.length) * 100}%` }"
-          />
+        <div class="mt-2 space-y-1">
+          <TransitionGroup name="fade">
+            <p
+              v-for="req in metRequirements"
+              :key="req.text" 
+              class="text-xs text-success"
+            >
+              {{ req.text }}
+            </p>
+          </TransitionGroup>
         </div>
+        <transition name="fade">
+          <div v-if="showMeter" class="mt-2 h-1 bg-muted rounded-full overflow-hidden">
+            <div
+              class="h-full bg-primary transition-all duration-300 ease-in-out" 
+              :style="{ width: `${(passwordStrength / passwordRequirements.length) * 100}%` }"
+            />
+          </div>
+        </transition>
         <span v-if="errors.password" class="text-destructive text-sm pt-1">{{ errors.password }}</span>
       </div>
       <div>

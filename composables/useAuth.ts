@@ -103,19 +103,38 @@ export const useAuth = () => {
     loading.value = true;
     error.value = '';
 
-    const { data, error: signUpError } = await supabase.auth.signUp({
-      email,
-      password,
-    });
+    try {
+      console.log('Attempting to sign up with:', { email, password: '********' });
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+      });
 
-    if (signUpError) {
-      error.value = signUpError.message;
+      if (signUpError) {
+        console.error('Supabase Signup Error:', signUpError);
+        error.value = signUpError.message;
+        throw signUpError;
+      }
+
+      if (data?.user?.identities?.length === 0) {
+        console.error('User already exists');
+        error.value = 'An account with this email already exists.';
+        throw new Error('User already exists');
+      }
+
+      console.log('Signup successful:', data);
+      return data;
+    } catch (e) {
+      console.error('Caught error during signup:', e);
+      if (e instanceof Error) {
+        error.value = e.message;
+      } else {
+        error.value = 'An unexpected error occurred';
+      }
+      throw e;
+    } finally {
       loading.value = false;
-      throw new Error(signUpError.message);
     }
-
-    loading.value = false;
-    return data;
   };
 
   return {

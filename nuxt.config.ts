@@ -33,6 +33,16 @@ export default defineNuxtConfig({
     url: process.env.SUPABASE_URL,
     key: process.env.SUPABASE_KEY,
     redirect: false,
+    redirectOptions: {
+      login: '/auth',
+      callback: '/confirm',
+    },
+  },
+  runtimeConfig: {
+    public: {
+      supabaseUrl: process.env.SUPABASE_URL,
+      supabaseKey: process.env.SUPABASE_KEY,
+    },
   },
 
   tailwindcss: {
