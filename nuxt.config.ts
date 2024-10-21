@@ -3,6 +3,9 @@ export default defineNuxtConfig({
   compatibilityDate: '2024-04-03',
   devtools: { enabled: true, componentInspector: false },
   ssr: false,
+  routeRules: {
+  
+  },
   modules: [
     'radix-vue/nuxt',
     '@nuxt/devtools',
@@ -16,6 +19,13 @@ export default defineNuxtConfig({
     '@vee-validate/nuxt',
     '@morev/vue-transitions/nuxt',
   ],
+  postcss: {
+    plugins: {
+      tailwindcss: {},
+      autoprefixer: {},
+    },
+  },
+  css: [],
   plugins: [
 
   ],
@@ -34,8 +44,13 @@ export default defineNuxtConfig({
     key: process.env.SUPABASE_KEY,
     redirect: false,
     redirectOptions: {
-      login: '/auth',
-      callback: '/confirm',
+      login: '/auth/login',
+      callback: '/auth/confirm',
+    },
+    cookieOptions: {
+      maxAge: 3600, // 1 hour in seconds
+      sameSite: 'lax',
+      secure: true,
     },
   },
   runtimeConfig: {

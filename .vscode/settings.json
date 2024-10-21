@@ -1,7 +1,7 @@
 {
     "editor.formatOnSave": true,
     "editor.codeActionsOnSave": {
-      "source.fixAll.eslint": "always",
+      "source.fixAll.eslint": "explicit"
      },
      "emmet.includeLanguages": {
       "postcss": "css"
@@ -120,5 +120,9 @@
       "tw`(.*?)`",
       "tw\\('(.*?)'\\)",
       "tw\\(\\s*('(.*?)'|\"(.*?)\")\\s*\\)"
-    ]
+    ],
+
+    "css.validate": false,
+  "scss.validate": false,
+    "stylelint.validate": ["css", "scss", "postcss"],
   }

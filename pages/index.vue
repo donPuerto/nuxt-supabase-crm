@@ -21,12 +21,12 @@ onMounted(() => {
 
 <template>
   <div 
-    class="bg-background text-foreground overflow-hidden"
+    class="overflow-hidden bg-background text-foreground"
     :style="{ height: containerHeight }"
   >
-    <div class="h-full flex flex-col p-4 sm:p-6 md:p-8">
+    <div class="flex h-full flex-col p-4 sm:p-6 md:p-8">
     
-      <div class="flex-grow overflow-hidden">
+      <div class="grow overflow-hidden">
         <KanbanBoard class="h-full" />
       </div>
     </div>

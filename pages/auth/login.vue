@@ -7,6 +7,7 @@ import type { AuthSocialProvider } from '@/types';
 
 definePageMeta({
   layout: 'auth',
+  middleware: ['guest'],
 });
 
 const { toast } = useToast();
@@ -22,25 +23,35 @@ const { meta, handleSubmit, defineField, errors } = useForm({
 const [email, emailAttrs] = defineField('email');
 const [password, passwordAttrs] = defineField('password');
 
-const { signInWithEmailAndPassword, signInWithOAuth, loading, error } = useAuth();
-
-const rememberMe = ref(false);
+const { signInWithEmailAndPassword, signInWithOAuth, checkSession,isAuthenticated, loading, error } = useAuth();
 
 const onSubmit = handleSubmit(async (values, { resetForm }) => {
   const { email, password } = values;
   loading.value = true;
   start();
   try {
-    await signInWithEmailAndPassword(email, password);
-    toast({
-      title: 'Signed in successfully',
-      description: 'Welcome to the platform.',
-      variant: 'success',      
-    });
+    const { session } = await signInWithEmailAndPassword(email, password);
+    if (session) {
+      toast({
+        title: 'Signed in successfully',
+        description: 'Welcome to the platform.',
+        variant: 'success',      
+      });
 
-    resetForm();
-    // Consider adding a redirect here
-    // navigateTo('/dashboard');
+      resetForm();
+      
+      // Check for intended route and redirect accordingly
+      const intendedRoute = localStorage.getItem('intendedRoute');
+      if (intendedRoute) {
+        localStorage.removeItem('intendedRoute');
+        await navigateTo(intendedRoute);
+      } else {
+        await navigateTo('/dashboard');
+      }
+    } else {
+      throw new Error('No session data returned');
+    }
+    
   } catch (error) {
     toast({
       title: 'An Error Occurred',
@@ -54,9 +65,23 @@ const onSubmit = handleSubmit(async (values, { resetForm }) => {
   }
 });
 
-const handleSocialLogin = (providerName: AuthSocialProvider) => {
+const handleSocialLogin = async (providerName: AuthSocialProvider) => {
   if (providerName === 'github' || providerName === 'google' || providerName === 'facebook') {
-    signInWithOAuth(providerName);
+    try {
+      loading.value = true;
+      start();
+      await signInWithOAuth(providerName);
+      // Note: The redirect handling will be managed by Supabase's OAuth flow
+    } catch (error) {
+      toast({
+        title: 'Authentication Error',
+        description: (error as Error)?.message || `Failed to sign in with ${providerName}.`,
+        variant: 'destructive',
+      });
+    } finally {
+      loading.value = false;
+      finish();
+    }
   } else {
     toast({
       title: 'Unsupported Provider',
@@ -65,13 +90,22 @@ const handleSocialLogin = (providerName: AuthSocialProvider) => {
     });
   }
 };
+
+// Redirect if already authenticated
+onMounted(async () => {
+  const isSessionValid = await checkSession();
+  if (isSessionValid && isAuthenticated.value) {
+    await navigateTo('/dashboard');
+  }
+});
+
 </script>
 
 <template>
-  <div class="bg-card rounded-lg border border-border shadow-md p-6 sm:p-8 md:p-10 space-y-6">
+  <div class="p-6 space-y-6 border rounded-lg shadow-md border-border bg-card sm:p-8 md:p-10">
     <div class="text-left">
       <h1 class="text-2xl font-bold">Welcome back</h1>
-      <p class="text-sm text-muted-foreground mt-2">
+      <p class="mt-2 text-sm text-muted-foreground">
         Don't have an account?
         <NuxtLink to="/auth/register" class="text-primary hover:underline">Create today!</NuxtLink>
       </p>
@@ -79,7 +113,7 @@ const handleSocialLogin = (providerName: AuthSocialProvider) => {
     
     <form class="space-y-4" @submit.prevent="onSubmit">
       <div>
-        <UiLabel for="email" class="block text-sm font-medium text-foreground mb-1">Email</UiLabel>
+        <UiLabel for="email" class="block mb-1 text-sm font-medium text-foreground">Email</UiLabel>
         <UiInput
           id="email"
           v-bind="emailAttrs"
@@ -87,10 +121,10 @@ const handleSocialLogin = (providerName: AuthSocialProvider) => {
           type="email"
           placeholder="you@email.com"
         />
-        <span v-if="errors.email" class="text-destructive text-sm pt-1">{{ errors.email }}</span>
+        <span v-if="errors.email" class="pt-1 text-sm text-destructive">{{ errors.email }}</span>
       </div>
       <div>
-        <UiLabel for="password" class="block text-sm font-medium text-foreground mb-1">Password</UiLabel>
+        <UiLabel for="password" class="block mb-1 text-sm font-medium text-foreground">Password</UiLabel>
         <UiInput
           id="password"
           v-bind="passwordAttrs"
@@ -99,20 +133,7 @@ const handleSocialLogin = (providerName: AuthSocialProvider) => {
           placeholder="••••••••"
           autocomplete
         />
-        <span v-if="errors.password" class="text-destructive text-sm pt-1">{{ errors.password }}</span>
-      </div>
-      <div class="flex items-center justify-between">
-        <div class="flex items-center">
-          <UiCheckbox 
-            id="remember-me"
-            v-model="rememberMe"
-            type="checkbox"
-          />
-          <UiLabel for="remember-me" class="ml-2 block text-sm text-foreground">Remember me</UiLabel>
-        </div>
-        <div class="text-sm">
-          <NuxtLink to="/auth/forgot-password" class="text-primary hover:underline">Forgot password?</NuxtLink>
-        </div>
+        <span v-if="errors.password" class="pt-1 text-sm text-destructive">{{ errors.password }}</span>
       </div>
       <UiButton 
         type="submit" 
@@ -129,15 +150,15 @@ const handleSocialLogin = (providerName: AuthSocialProvider) => {
         <span class="w-full border-t border-border" />
       </div>
       <div class="relative flex justify-center text-xs uppercase">
-        <span class="bg-card px-2 text-muted-foreground">Or continue with</span>
+        <span class="px-2 bg-card text-muted-foreground">Or continue with</span>
       </div>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
       <UiButton 
         v-for="provider in AUTH_SOCIAL_PROVIDERS"
         :key="provider.name"
-        class="w-full flex items-center justify-center"
+        class="flex items-center justify-center w-full"
         variant="ghost"
         :disabled="loading"
         @click="handleSocialLogin(provider.name)"
@@ -145,7 +166,7 @@ const handleSocialLogin = (providerName: AuthSocialProvider) => {
         <Icon 
           :name="provider.icon" 
           :size="provider.size" 
-          class="md:mr-0 mr-2 hidden sm:inline-block"
+          class="hidden mr-2 sm:inline-block md:mr-0"
         /> 
         <span class="sm:hidden">{{ provider.label }}</span>
         <span class="hidden sm:inline md:hidden lg:inline">{{ provider.label }}</span>
@@ -153,7 +174,7 @@ const handleSocialLogin = (providerName: AuthSocialProvider) => {
     
     </div>
 
-    <p v-if="error" class="text-destructive text-sm text-center">{{ error }}</p>
+    <p v-if="error" class="text-sm text-center text-destructive">{{ error }}</p>
   </div>
 </template>
 

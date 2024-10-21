@@ -1,9 +1,30 @@
 import withNuxt from './.nuxt/eslint.config.mjs'
+import tailwindcss from 'eslint-plugin-tailwindcss'
 
 export default withNuxt({
   files: ['**/*.ts', '**/*.tsx', '**/*.vue', '**/*.js'],
+  plugins: {
+   tailwindcss,
+  },
   rules: {
     // General code style rules
+    ...tailwindcss.configs.recommended.rules,
+    'tailwindcss/no-custom-classname': 'off',
+    //  'vue/no-parsing-error': 'off',
+    // Disable the no-custom-classname rule
+
+    // Disable style linting in Vue files
+    // 'vue/style-prop-name-casing': 'off',
+
+    // 'vue/no-unused-properties': ['error', {
+    //   groups: ['props', 'data', 'computed', 'methods', 'setup'],
+    //   ignorePublicMembers: true,
+    // }],
+    
+    // Ignore unknown attributes (like @apply) in <style> tags
+    // 'vue/no-unknown-component-in-scope-attribute': 'off',
+    // 'vue/valid-v-bind': 'off',
+
     // These rules enforce consistent coding styles and formatting
     'semi': ['error', 'always'], // Require semicolons at the end of statements
     'quotes': ['error', 'single'], // Use single quotes for strings

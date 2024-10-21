@@ -2,9 +2,9 @@
 import { useAuth } from '~/composables/useAuth';
 import { useToast } from '@/composables/useToast';
 import * as yup from 'yup';
-import {  AUTH_SOCIAL_PROVIDERS } from '~/utils/constants';
+import { AUTH_SOCIAL_PROVIDERS } from '~/utils/constants';
 import type { AuthSocialProvider } from '@/types';
-import { ref, computed, onMounted } from 'vue';
+import { useForm } from 'vee-validate';
 
 definePageMeta({
   layout: 'auth',
@@ -14,21 +14,16 @@ const { toast } = useToast();
 const { start, finish } = useLoadingIndicator();
 
 const passwordRequirements = [
-  { regex: /.{8,}/, text: '8 characters long' },
-  { regex: /[A-Z]/, text: '1 capital letter' },
-  { regex: /[a-z]/, text: '1 lowercase letter' },
-  { regex: /[!@#$%^&*(),.?":{}|<>]/, text: '1 special character' },
-  { regex: /\d/, text: '1 numeric character' },
+  { regex: /.{8,}/, text: '✓ Contains at least 8 characters' },
+  { regex: /[A-Z]/, text: '✓ Contains an uppercase letter' },
+  { regex: /[a-z]/, text: '✓ Contains a lowercase letter' },
+  { regex: /[!@#$%^&*(),.?":{}|<>]/, text: '✓ Contains a special character' },
+  { regex: /\d/, text: '✓ Contains a number' },
 ];
 
 const { meta, handleSubmit, defineField, errors } = useForm({
-  initialValues: {
-    email: 'don.puerto.1003@gmail.com',
-    password: 'Siemens$$1003',
-    confirmPassword: 'Siemens$$1003',
-  },
   validationSchema: yup.object({
-    email: yup.string().email('Please enter a valid email address').matches(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, 'Please enter a valid email address').required().label('Email'),
+    email: yup.string().email('Please enter a valid email address').required().label('Email'),
     password: yup.string()
       .min(8, 'Password must be at least 8 characters')
       .matches(/[A-Z]/, 'Password must contain at least 1 capital letter')
@@ -37,13 +32,16 @@ const { meta, handleSubmit, defineField, errors } = useForm({
       .matches(/\d/, 'Password must contain at least 1 numeric character')
       .required()
       .label('Password'),
-    confirmPassword: yup.string().oneOf([yup.ref('password')], 'Passwords must match').required().label('Confirm Password'),
+    agreedToTerms: yup.boolean()
+      .oneOf([true], 'You must agree to the Terms of Service and Privacy Policy')
+      .required()
+      .label('Terms Agreement'),
   }),
 });
 
 const [email, emailAttrs] = defineField('email');
 const [password, passwordAttrs] = defineField('password');
-const [confirmPassword, confirmPasswordAttrs] = defineField('confirmPassword');
+const [agreedToTerms, agreedToTermsAttrs] = defineField('agreedToTerms');
 
 const metRequirements = computed(() => 
   password.value
@@ -54,6 +52,15 @@ const metRequirements = computed(() =>
 const passwordStrength = computed(() => metRequirements.value.length);
 
 const { signUp, loading, error, signInWithOAuth } = useAuth();
+
+// Compute whether the form is valid and all fields are filled
+const isFormValid = computed(() => {
+  return meta.value.valid && 
+         email.value && 
+         password.value && 
+         agreedToTerms.value && 
+         !loading.value;
+});
 
 const onSubmit = handleSubmit(async (values) => {
   const { email, password } = values;
@@ -96,28 +103,28 @@ const handleSocialLogin = (providerName: AuthSocialProvider) => {
 const showMeter = ref(false);
 
 onMounted(() => {
-  // Set showMeter to true after a short delay to allow for transition
   setTimeout(() => {
     showMeter.value = true;
   }, 0);
-  
 });
 
+const handleTermsChange = (checked: boolean) => {
+  agreedToTerms.value = checked;
+};
 </script>
 
 <template>
-  <div class="bg-card rounded-lg border border-border shadow-md p-6 sm:p-8 md:p-10 space-y-6">
+  <div class="space-y-6 rounded-lg border border-border bg-card p-6 shadow-md sm:p-8 md:p-10">
     <div class="text-left">
-      <h1 class="text-2xl font-bold">Create an account</h1>
-      <p class="text-sm text-muted-foreground mt-2">
+      <h1 class="text-2xl font-bold">Create an account</h1> 
+      <p class="mt-2 text-sm text-muted-foreground">
         Already have an account?
-        <NuxtLink to="/auth/login" class="text-primary hover:underline">Sign in</NuxtLink>
+        <NuxtLink to="/auth/login" class="text-primary hover:underline">Log in here</NuxtLink>
       </p>
     </div>
-    
     <form class="space-y-4" @submit.prevent="onSubmit">
       <div>
-        <UiLabel for="email" class="block text-sm font-medium text-foreground mb-1">Email</UiLabel>
+        <UiLabel for="email" class="mb-1 block text-sm font-medium text-foreground">Email</UiLabel>
         <UiInput
           id="email"
           v-bind="emailAttrs"
@@ -125,10 +132,10 @@ onMounted(() => {
           type="email"
           placeholder="you@email.com"
         />
-        <span v-if="errors.email" class="text-destructive text-sm pt-1">{{ errors.email }}</span>
+        <span v-if="errors.email" class="pt-1 text-sm text-destructive">{{ errors.email }}</span>
       </div>
       <div>
-        <UiLabel for="password" class="block text-sm font-medium text-foreground mb-1">Password</UiLabel>
+        <UiLabel for="password" class="mb-1 block text-sm font-medium text-foreground">Password</UiLabel>
         <UiInput
           id="password"
           v-bind="passwordAttrs"
@@ -142,39 +149,50 @@ onMounted(() => {
             <p
               v-for="req in metRequirements"
               :key="req.text" 
-              class="text-xs text-success"
+              class="text-success text-xs"
             >
               {{ req.text }}
             </p>
           </TransitionGroup>
         </div>
         <transition name="fade">
-          <div v-if="showMeter" class="mt-2 h-1 bg-muted rounded-full overflow-hidden">
+          <div v-if="showMeter" class="mt-2 h-1 overflow-hidden rounded-full bg-muted">
             <div
               class="h-full bg-primary transition-all duration-300 ease-in-out" 
               :style="{ width: `${(passwordStrength / passwordRequirements.length) * 100}%` }"
             />
           </div>
         </transition>
-        <span v-if="errors.password" class="text-destructive text-sm pt-1">{{ errors.password }}</span>
+        <span v-if="errors.password" class="pt-1 text-sm text-destructive">{{ errors.password }}</span>
       </div>
-      <div>
-        <UiLabel for="confirm-password" class="block text-sm font-medium text-foreground mb-1">Confirm Password</UiLabel>
-        <UiInput
-          id="confirm-password"
-          v-bind="confirmPasswordAttrs"
-          v-model="confirmPassword"
-          type="password"
-          placeholder="••••••••"
-          autocomplete
-        />
-        <span v-if="errors.confirmPassword" class="text-destructive text-sm pt-1">{{ errors.confirmPassword }}</span>
+      
+      <!-- Checkbox for Terms and Privacy Policy -->
+      <div class="space-y-2">
+        <div class="flex items-start">
+          <UiCheckbox 
+            id="checkbox-terms" 
+            v-bind="agreedToTermsAttrs"
+            :checked="agreedToTerms"
+            @update:checked="handleTermsChange"
+          />
+          <div class="ml-3 text-xs">
+            <UiLabel for="checkbox-terms" class="inline text-foreground">
+              I agree to the 
+              <a href="/terms-of-service" class="text-primary hover:underline">Terms of Service</a>
+              <span class="mx-1">and</span>
+              <a href="/privacy-policy" class="text-primary hover:underline">Privacy Policy</a>
+            </UiLabel>
+          </div>
+        </div>
+   
+        <span v-if="errors.agreedToTerms" class="block text-sm text-destructive">{{ errors.agreedToTerms }}</span>
       </div>
+      
       <UiButton 
         type="submit" 
         class="w-full"
-        :disabled="!meta.touched || passwordStrength < passwordRequirements.length"
         :loading="loading"
+        :disabled="!isFormValid"
       >
         Create Account
       </UiButton>
@@ -189,11 +207,11 @@ onMounted(() => {
       </div>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
       <UiButton 
         v-for="provider in AUTH_SOCIAL_PROVIDERS"
         :key="provider.name"
-        class="w-full flex items-center justify-center"
+        class="flex w-full items-center justify-center"
         variant="ghost"
         :disabled="loading"
         @click="handleSocialLogin(provider.name)"
@@ -201,22 +219,25 @@ onMounted(() => {
         <Icon 
           :name="provider.icon" 
           :size="provider.size" 
-          class="md:mr-0 mr-2 hidden sm:inline-block"
+          class="mr-2 hidden sm:inline-block md:mr-0"
         /> 
         <span class="sm:hidden">{{ provider.label }}</span>
         <span class="hidden sm:inline md:hidden lg:inline">{{ provider.label }}</span>
       </UiButton>
     </div>
 
-    <p v-if="error" class="text-destructive text-sm text-center">{{ error }}</p>
+    <p v-if="error" class="text-center text-sm text-destructive">{{ error }}</p>
   </div>
 </template>
 
 <style scoped>
-.fade-enter-active, .fade-leave-active {
-  transition: opacity 0.5s ease;
+.text-sm {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
 }
-.fade-enter-from, .fade-leave-to {
-  opacity: 0;
+
+.flex-shrink-0 {
+  flex-shrink: 0;
 }
 </style>

@@ -6,97 +6,111 @@ export const useAuth = () => {
 
   const isAuthenticated = computed(() => !!user.value);
 
-  const signInWithEmailAndPassword = async (email: string, password: string, rememberMe: boolean = false) => {
+  const signInWithEmailAndPassword = async (email: string, password: string) => {
     loading.value = true;
     error.value = '';
 
-    const { data, error: signInError } = await supabase.auth.signInWithPassword({
-      email,
-      password,      
-    });
+    try {
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      
+      if (signInError) throw signInError;
 
-    if (signInError) {
-      error.value = signInError.message;
-      loading.value = false;
-      throw new Error(signInError.message); // Throw the error
-    } else if (data?.session) {
-      // Store the rememberMe preference
-      localStorage.setItem('rememberMe', rememberMe.toString());
-
-      if (rememberMe) {
-        // Set a longer expiration for the session
-        const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
-        localStorage.setItem('sessionExpires', expiresAt.toISOString());
+      if (data?.session) {
+        // Update user state
+        user.value = data.user;
+        return data;
       } else {
-        // Remove any existing expiration
-        localStorage.removeItem('sessionExpires');
+        throw new Error('No session data returned');
       }
-    } else {
-      throw new Error('No session data returned'); // Throw an error if no session data
+    } catch(err) {
+      error.value = err instanceof Error ? err.message : 'An error occurred during sign in';
+      throw err;
+    } finally {
+      loading.value = false;
     }
-    loading.value = false;
+  };
+
+  const checkSession = async () => {
+    // Skip session check on the server side
+    if (!import.meta.client) return true;
+
+    try {
+      // Attempt to retrieve the current session
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    
+      // If there's an error retrieving the session, throw it
+      if (sessionError) throw sessionError;
+
+      // If no session is found, return false (user is not authenticated)
+      if (!session) {
+        return false;
+      }
+
+      // Update user value to ensure it's always in sync with the session
+      user.value = session.user;
+
+      // Clear any previous errors
+      error.value = '';
+
+      // Session is valid, return true
+      return true;
+    } catch (err) {
+       // Handle the error and set it to the error ref
+       if (err instanceof Error) {
+        error.value = err.message;
+      } else {
+        error.value = 'An unexpected error occurred while checking the session';
+      }
+      // You might want to handle or log this error in a production environment
+      return false;
+    }
   };
 
   const signOut = async () => {
     loading.value = true;
     error.value = '';
-    const { error: signOutError } = await supabase.auth.signOut();
-    if (signOutError) {
-      error.value = signOutError.message;
-    } else {
-      // Clear session-related items from localStorage
-      localStorage.removeItem('rememberMe');
-      localStorage.removeItem('sessionExpires');
+    
+    try {
+      const { error: signOutError } = await supabase.auth.signOut();
+      if (signOutError) throw signOutError;
+      
+      user.value = null;
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'An error occurred during sign out';
+      throw err;
+    } finally {
+      loading.value = false;
     }
-    loading.value = false;
   };
 
-  const checkSession = () => {
-    const rememberMe = localStorage.getItem('rememberMe') === 'true';
-    const sessionExpires = localStorage.getItem('sessionExpires');
-
-    if (!rememberMe || !sessionExpires) {
-      return true; // Session is valid (either not remembered or no expiration set)
-    }
-
-    const expirationDate = new Date(sessionExpires);
-    if (expirationDate > new Date()) {
-      return true; // Session is still valid
-    }
-
-    // Session has expired
-    signOut();
-    return false;
-  };
-  
   const signInWithOAuth = async (provider: 'github' | 'google' | 'facebook') => {
     loading.value = true;
     error.value = '';
-    const { error: signInError } = await supabase.auth.signInWithOAuth({
-      provider,
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
-    if (signInError) error.value = signInError.message;
-    loading.value = false;
-  };
 
-  const sendPasswordResetEmail = async (email: string) => {
-    loading.value = true;
-    error.value = '';
+    try {
+      const { data, error: signInError } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
+        },
+      });
 
-    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/reset-password`,
-    });
-
-    if (resetError) {
-      error.value = resetError.message;
+      if (signInError) throw signInError;
+      
+      return data;
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'An error occurred during OAuth sign in';
+      throw err;
+    } finally {
       loading.value = false;
-      throw new Error(resetError.message);
     }
-
-    loading.value = false;
   };
 
   const signUp = async (email: string, password: string) => {
@@ -104,34 +118,49 @@ export const useAuth = () => {
     error.value = '';
 
     try {
-      console.log('Attempting to sign up with:', { email, password: '********' });
       const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        },
       });
 
       if (signUpError) {
-        console.error('Supabase Signup Error:', signUpError);
-        error.value = signUpError.message;
         throw signUpError;
       }
 
       if (data?.user?.identities?.length === 0) {
-        console.error('User already exists');
-        error.value = 'An account with this email already exists.';
-        throw new Error('User already exists');
+        throw new Error('An account with this email already exists.');
       }
-
-      console.log('Signup successful:', data);
+      
       return data;
-    } catch (e) {
-      console.error('Caught error during signup:', e);
-      if (e instanceof Error) {
-        error.value = e.message;
+    } catch (err) {
+      if (err instanceof Error) {
+        error.value = err.message;
       } else {
         error.value = 'An unexpected error occurred';
       }
-      throw e;
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  const sendPasswordResetEmail = async (email: string) => {
+    loading.value = true;
+    error.value = '';
+
+    try {
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth/reset-password`,
+      });
+
+      if (resetError) throw resetError;
+
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'An error occurred sending reset email';
+      throw err;
     } finally {
       loading.value = false;
     }
@@ -145,8 +174,8 @@ export const useAuth = () => {
     signInWithEmailAndPassword,
     signInWithOAuth,
     signOut,
-    checkSession,
     sendPasswordResetEmail,
     signUp,
+    checkSession,
   };
 };
