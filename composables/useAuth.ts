@@ -6,6 +6,35 @@ export const useAuth = () => {
 
   const isAuthenticated = computed(() => !!user.value);
 
+  // Function to set up auth state change listener
+  const setupAuthListener = () => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      // Update the user value when the auth state changes
+      user.value = session?.user || null;
+
+      // You can add more logic here based on the event type
+      switch (event) {
+      case 'SIGNED_IN':
+        console.log('User signed in:', session?.user);
+        break;
+      case 'SIGNED_OUT':
+        console.log('User signed out');
+        break;
+      case 'USER_UPDATED':
+        console.log('User updated:', session?.user);
+        break;
+      case 'PASSWORD_RECOVERY':
+        console.log('Password recovery event received');
+        break;
+      }
+    });
+
+    // Return the cleanup function
+    return () => {
+      subscription.unsubscribe();
+    };
+  };
+
   const signInWithEmailAndPassword = async (email: string, password: string) => {
     loading.value = true;
     error.value = '';
@@ -58,8 +87,8 @@ export const useAuth = () => {
       // Session is valid, return true
       return true;
     } catch (err) {
-       // Handle the error and set it to the error ref
-       if (err instanceof Error) {
+      // Handle the error and set it to the error ref
+      if (err instanceof Error) {
         error.value = err.message;
       } else {
         error.value = 'An unexpected error occurred while checking the session';
@@ -116,17 +145,18 @@ export const useAuth = () => {
   const signUp = async (email: string, password: string) => {
     loading.value = true;
     error.value = '';
-
+    console.log({ email, password });
     try {
       const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          emailRedirectTo: `${window.location.origin}/auth/confirm`,
         },
       });
 
       if (signUpError) {
+        console.error('SignUp Error:', signUpError);
         throw signUpError;
       }
 
@@ -177,5 +207,6 @@ export const useAuth = () => {
     sendPasswordResetEmail,
     signUp,
     checkSession,
+    setupAuthListener
   };
 };

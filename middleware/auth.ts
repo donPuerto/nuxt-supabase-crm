@@ -1,4 +1,4 @@
-export default defineNuxtRouteMiddleware(async (to, from) => {
+export default defineNuxtRouteMiddleware(async (to) => {
   const { checkSession, isAuthenticated } = useAuth();
   
   try {
@@ -29,6 +29,7 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
     return;
   } catch (error) {
     // In case of an error during session check, redirect to login for safety
+    console.log(error);
     return navigateTo('/auth/login');
   }
 });
