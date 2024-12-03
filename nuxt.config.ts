@@ -4,7 +4,9 @@ export default defineNuxtConfig({
   devtools: { enabled: true, componentInspector: false },
   ssr: false,
   routeRules: {
-  
+    '/auth/login': { ssr: false },
+    '/auth/register': { ssr: false },
+    '/auth/**': { ssr: false }
   },
   modules: [
     'radix-vue/nuxt',
@@ -42,7 +44,7 @@ export default defineNuxtConfig({
   supabase: {
     url: process.env.SUPABASE_URL,
     key: process.env.SUPABASE_KEY,
-    redirect: true,
+    redirect: false,
     redirectOptions: {
       login: '/auth/login',
       callback: '/auth/callback',

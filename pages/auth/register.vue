@@ -8,17 +8,18 @@ import { useForm } from 'vee-validate';
 
 definePageMeta({
   layout: 'auth',
+  middleware: ['guest']
 });
 
 const { toast } = useToast();
 const { start, finish } = useLoadingIndicator();
 
 const passwordRequirements = [
-  { regex: /.{8,}/, text: '✓ Contains at least 8 characters' },
-  { regex: /[A-Z]/, text: '✓ Contains an uppercase letter' },
-  { regex: /[a-z]/, text: '✓ Contains a lowercase letter' },
-  { regex: /[!@#$%^&*(),.?":{}|<>]/, text: '✓ Contains a special character' },
-  { regex: /\d/, text: '✓ Contains a number' },
+  { regex: /.{8,}/, text: 'At least 8 characters length' },
+  { regex: /\d/, text: 'At least 1 numeric character' },
+  { regex: /[A-Z]/, text: 'At least 1 uppercase letter' },
+  { regex: /[a-z]/, text: 'At least 1 lowercase letter' },
+  { regex: /[!@#$%^&*(),.?":{}|<>]/, text: 'At least 1 special character' },
 ];
 
 const { meta, handleSubmit, defineField, errors } = useForm({
@@ -43,13 +44,15 @@ const [email, emailAttrs] = defineField('email');
 const [password, passwordAttrs] = defineField('password');
 const [agreedToTerms, agreedToTermsAttrs] = defineField('agreedToTerms');
 
-const metRequirements = computed(() => 
-  password.value
-    ? passwordRequirements.filter(req => req.regex.test(password.value))
-    : [],
-);
+const showRequirements = ref(false);
 
-const passwordStrength = computed(() => metRequirements.value.length);
+const checkRequirement = (requirement: { regex: RegExp, text: string }) => {
+  return requirement.regex.test(password.value || '');
+};
+
+const handlePasswordFocus = () => {
+  showRequirements.value = true;
+};
 
 const { signUp, loading, error, signInWithOAuth } = useAuth();
 
@@ -100,14 +103,6 @@ const handleSocialLogin = (providerName: AuthSocialProvider) => {
   }
 };
 
-const showMeter = ref(false);
-
-onMounted(() => {
-  setTimeout(() => {
-    showMeter.value = true;
-  }, 0);
-});
-
 const handleTermsChange = (checked: boolean) => {
   agreedToTerms.value = checked;
 };
@@ -142,27 +137,35 @@ const handleTermsChange = (checked: boolean) => {
           v-model="password"
           type="password"
           placeholder="••••••••"
-          autocomplete
+          autocomplete="new-password"
+          @focus="handlePasswordFocus"
         />
-        <div class="mt-2 space-y-1">
-          <TransitionGroup name="fade">
-            <p
-              v-for="req in metRequirements"
-              :key="req.text" 
-              class="text-success text-xs"
-            >
-              {{ req.text }}
-            </p>
-          </TransitionGroup>
-        </div>
-        <transition name="fade">
-          <div v-if="showMeter" class="mt-2 h-1 overflow-hidden rounded-full bg-muted">
-            <div
-              class="h-full bg-primary transition-all duration-300 ease-in-out" 
-              :style="{ width: `${(passwordStrength / passwordRequirements.length) * 100}%` }"
+        <TransitionGroup
+          tag="ul"
+          v-if="showRequirements"
+          class="mt-3 space-y-1 text-sm text-muted-foreground"
+          enter-active-class="transition-all duration-300 ease-out"
+          enter-from-class="opacity-0 -translate-y-2"
+          enter-to-class="opacity-100 translate-y-0"
+          leave-active-class="transition-all duration-300 ease-in"
+          leave-from-class="opacity-100 translate-y-0"
+          leave-to-class="opacity-0 -translate-y-2"
+        >
+          <li
+            v-for="req in passwordRequirements"
+            :key="req.text"
+            class="flex items-center space-x-2"
+          >
+            <Icon
+              :name="checkRequirement(req) ? 'ph:check-circle-fill' : 'ph:circle'"
+              class="h-4 w-4"
+              :class="checkRequirement(req) ? 'text-success' : 'text-muted-foreground'"
             />
-          </div>
-        </transition>
+            <span>
+              {{ req.text }}
+            </span>
+          </li>
+        </TransitionGroup>
         <span v-if="errors.password" class="pt-1 text-sm text-destructive">{{ errors.password }}</span>
       </div>
       

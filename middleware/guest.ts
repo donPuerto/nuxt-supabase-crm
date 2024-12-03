@@ -1,12 +1,9 @@
 // middleware/guest.ts
 export default defineNuxtRouteMiddleware(async () => {
-  const { checkSession, isAuthenticated } = useAuth();
-
-  const isSessionValid = await checkSession();
-
-  if (isSessionValid && isAuthenticated.value) {
-    
+  const user = useSupabaseUser();
+  
+  // If user is authenticated, redirect to dashboard
+  if (user.value) {
     return navigateTo('/dashboard');
   }
-  
 });

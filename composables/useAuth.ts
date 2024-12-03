@@ -73,19 +73,34 @@ export const useAuth = () => {
       // If there's an error retrieving the session, throw it
       if (sessionError) throw sessionError;
 
-      // If no session is found, return false (user is not authenticated)
+      // If no session is found, clear user and return false
       if (!session) {
+        user.value = null;
         return false;
+      }
+
+      // Check if session is expired
+      const now = Math.floor(Date.now() / 1000);
+      if (session.expires_at && session.expires_at < now) {
+        // Try to refresh the session
+        const { data: { session: refreshedSession }, error: refreshError } = 
+          await supabase.auth.refreshSession();
+        
+        if (refreshError || !refreshedSession) {
+          user.value = null;
+          return false;
+        }
+
+        // Update user with refreshed session
+        user.value = refreshedSession.user;
+        return true;
       }
 
       // Update user value to ensure it's always in sync with the session
       user.value = session.user;
-
-      // Clear any previous errors
       error.value = '';
-
-      // Session is valid, return true
       return true;
+
     } catch (err) {
       // Handle the error and set it to the error ref
       if (err instanceof Error) {
@@ -93,7 +108,7 @@ export const useAuth = () => {
       } else {
         error.value = 'An unexpected error occurred while checking the session';
       }
-      // You might want to handle or log this error in a production environment
+      user.value = null;
       return false;
     }
   };
