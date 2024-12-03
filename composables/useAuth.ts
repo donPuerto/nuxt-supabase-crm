@@ -211,6 +211,26 @@ export const useAuth = () => {
     }
   };
 
+  const verifyEmail = async (token: string) => {
+    loading.value = true;
+    error.value = '';
+
+    try {
+      const { error: verifyError } = await supabase.auth.verifyOtp({
+        token_hash: token,
+        type: 'email',
+      });
+
+      if (verifyError) throw verifyError;
+
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Failed to verify email';
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  };
+
   return {
     user,
     loading,
@@ -222,6 +242,7 @@ export const useAuth = () => {
     sendPasswordResetEmail,
     signUp,
     checkSession,
-    setupAuthListener
+    setupAuthListener,
+    verifyEmail
   };
 };

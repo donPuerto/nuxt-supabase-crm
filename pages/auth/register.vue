@@ -5,6 +5,8 @@ import * as yup from 'yup';
 import { AUTH_SOCIAL_PROVIDERS } from '~/utils/constants';
 import type { AuthSocialProvider } from '@/types';
 import { useForm } from 'vee-validate';
+import { navigateTo } from '#app';
+import { definePageMeta } from '#imports';
 
 definePageMeta({
   layout: 'auth',
@@ -76,9 +78,8 @@ const onSubmit = handleSubmit(async (values) => {
       description: 'Please check your email to verify your account.',
       variant: 'success',      
     });
-    // You might want to redirect the user or clear the form here
+    navigateTo('/auth/login');
   } catch (error) {
-    
     toast({
       title: 'An Error Occurred',
       description: (error as Error)?.message || 'Failed to register. Please try again later.',
