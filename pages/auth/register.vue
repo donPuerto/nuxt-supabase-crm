@@ -143,7 +143,7 @@ const handleTermsChange = (checked: boolean) => {
         <TransitionGroup
           tag="ul"
           v-if="showRequirements"
-          class="mt-3 space-y-1 text-sm text-muted-foreground"
+          class="mt-2 space-y-1 text-sm text-muted-foreground"
           enter-active-class="transition-all duration-300 ease-out"
           enter-from-class="opacity-0 -translate-y-2"
           enter-to-class="opacity-100 translate-y-0"
