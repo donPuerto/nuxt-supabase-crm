@@ -8,6 +8,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
   const user = useSupabaseUser();
 
   try {
+    // Wait for session check
     await checkSession();
     
     // If no user, redirect to login
@@ -19,7 +20,8 @@ export default defineNuxtRouteMiddleware(async (to) => {
       return navigateTo('/auth/login');
     }
   } catch (error) {
-    console.error('Auth middleware error:', error);
+    // If session check fails, redirect to login
+    console.error('Session check failed:', error);
     return navigateTo('/auth/login');
   }
 });

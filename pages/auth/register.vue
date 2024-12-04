@@ -10,7 +10,7 @@ import { definePageMeta } from '#imports';
 
 definePageMeta({
   layout: 'auth',
-  middleware: ['guest']
+  middleware: ['guest'],
 });
 
 const { toast } = useToast();
@@ -142,8 +142,8 @@ const handleTermsChange = (checked: boolean) => {
           @focus="handlePasswordFocus"
         />
         <TransitionGroup
-          tag="ul"
           v-if="showRequirements"
+          tag="ul"
           class="mt-2 space-y-1 text-sm text-muted-foreground"
           enter-active-class="transition-all duration-300 ease-out"
           enter-from-class="opacity-0 -translate-y-2"
@@ -159,7 +159,7 @@ const handleTermsChange = (checked: boolean) => {
           >
             <Icon
               :name="checkRequirement(req) ? 'ph:check-circle-fill' : 'ph:circle'"
-              class="h-4 w-4"
+              class="size-4"
               :class="checkRequirement(req) ? 'text-success' : 'text-muted-foreground'"
             />
             <span>

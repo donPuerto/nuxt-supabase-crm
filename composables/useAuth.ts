@@ -118,10 +118,30 @@ export const useAuth = () => {
     error.value = '';
     
     try {
-      const { error: signOutError } = await supabase.auth.signOut();
+      // Sign out from Supabase
+      const { error: signOutError } = await supabase.auth.signOut({
+        scope: 'global', // This will clear all sessions across all tabs/windows
+      });
       if (signOutError) throw signOutError;
       
+      // Clear user state
       user.value = null;
+
+      // Clear any stored routes
+      if (import.meta.client) {
+        localStorage.removeItem('intendedRoute');
+      }
+
+      // Clear cookies manually
+      const cookies = useCookie('sb-');
+      if (cookies.value) {
+        cookies.value = null;
+      }
+
+      // Force reload to clear any remaining state
+      if (import.meta.client) {
+        window.location.href = '/auth/login';
+      }
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'An error occurred during sign out';
       throw err;
@@ -243,6 +263,6 @@ export const useAuth = () => {
     signUp,
     checkSession,
     setupAuthListener,
-    verifyEmail
+    verifyEmail,
   };
 };

@@ -6,7 +6,7 @@ export default defineNuxtConfig({
   routeRules: {
     '/auth/login': { ssr: false },
     '/auth/register': { ssr: false },
-    '/auth/**': { ssr: false }
+    '/auth/**': { ssr: false },
   },
   modules: [
     'radix-vue/nuxt',
@@ -44,16 +44,11 @@ export default defineNuxtConfig({
   supabase: {
     url: process.env.SUPABASE_URL,
     key: process.env.SUPABASE_KEY,
-    redirect: true,
+    redirect: false,
     redirectOptions: {
       login: '/auth/login',
-      callback: '/auth/thank-you',
-      exclude: ['/auth/register', '/auth/thank-you'],
-    },
-    cookieOptions: {
-      maxAge: 3600, // 1 hour in seconds
-      sameSite: 'lax',
-      secure: true,
+      callback: '/auth/confirm',
+      exclude: ['/auth/confirm'],
     },
   },
   runtimeConfig: {

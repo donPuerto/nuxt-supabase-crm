@@ -1,7 +1,27 @@
+<script setup lang="ts">
+import { useToast } from '@/composables/useToast';
+
+definePageMeta({
+  layout: 'auth',
+  middleware: 'guest',
+});
+
+const { loading } = useAuth();
+const { toast } = useToast();
+
+const handleResendEmail = async () => {
+  toast({
+    title: 'Coming Soon',
+    description: 'Resend email functionality will be available soon.',
+    variant: 'default',
+  });
+};
+</script>
+
 <template>
   <div class="space-y-6 rounded-lg border border-border bg-card p-6 shadow-md sm:p-8 md:p-10">
-    <div class="text-center space-y-4">
-      <Icon name="ph:check-circle-fill" class="h-16 w-16 text-success mx-auto" />
+    <div class="space-y-4 text-center">
+      <Icon name="ph:check-circle-fill" class="text-success mx-auto size-16" />
       
       <h1 class="text-2xl font-bold">Thank You for Registering!</h1>
       
@@ -15,17 +35,17 @@
       </div>
 
       <div class="pt-4">
-        <UiButton @click="navigateTo('/auth/login')" class="w-full sm:w-auto">
+        <UiButton class="w-full sm:w-auto" @click="navigateTo('/auth/login')">
           Continue to Login
         </UiButton>
       </div>
 
-      <p class="text-xs text-muted-foreground pt-4">
+      <p class="pt-4 text-xs text-muted-foreground">
         Didn't receive the email? Check your spam folder or
         <button 
-          @click="handleResendEmail" 
-          class="text-primary hover:underline"
+          class="text-primary hover:underline" 
           :disabled="loading"
+          @click="handleResendEmail"
         >
           click here to resend
         </button>
@@ -33,24 +53,3 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import { useToast } from '@/composables/useToast';
-
-definePageMeta({
-  layout: 'auth',
-  middleware: 'guest'
-});
-
-const { loading, error } = useAuth();
-const toast = useToast();
-
-const handleResendEmail = async () => {
-  // TODO: Implement resend email functionality
-  toast({
-    title: 'Coming Soon',
-    description: 'Resend email functionality will be available soon.',
-    variant: 'default'
-  });
-};
-</script>
