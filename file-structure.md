@@ -53,6 +53,11 @@ Features include:
   - Qualification tasks
   - Auto-task creation
   - Task templates
+- Calendar Integration
+  - Follow-up scheduling
+  - Meeting planning
+  - Activity timeline
+  - Reminder settings
 
 ### Customers (/dashboard/customers/)
 This is the customer relationship section
@@ -70,6 +75,11 @@ Features include:
   - Account management tasks
   - Meeting schedules
   - Follow-up reminders
+- Calendar Integration
+  - Service appointments
+  - Regular meetings
+  - Follow-up scheduling
+  - Availability booking
 
 ### Opportunities (/dashboard/customers/[id]/opportunities/)
 This is the sales pipeline section
@@ -93,6 +103,11 @@ Features include:
   - Follow-up tasks
   - Proposal tasks
   - Meeting tasks
+- Calendar Integration
+  - Sales meetings
+  - Presentations
+  - Client visits
+  - Follow-up scheduling
 
 ### Quotes (/dashboard/customers/[id]/quotes/)
 This is the quotation management section
@@ -228,54 +243,122 @@ Features include:
   - Follow-up tasks
   - Receipt verification tasks
   - Payment tasks
+- Calendar Integration
+  - Supplier meetings
+  - Delivery schedules
+  - Review meetings
+  - Payment schedules
 
 ### Task Management (/dashboard/tasks/)
 This is the comprehensive task management section
 Focuses on tracking and managing all system tasks
 Features include:
 - Task Organization
-  - Personal tasks
-  - Team tasks
-  - Project tasks
-  - Department tasks
-  - Company-wide tasks
-- Task Categories
-  - Follow-ups
-  - Approvals
-  - Reviews
-  - Meetings
-  - Deadlines
-  - Reminders
-- Task Integration
-  - Lead-related tasks
-  - Customer-related tasks
-  - Opportunity tasks
-  - Purchase tasks
-  - Inventory tasks
-  - Project tasks
-- Task Planning
-  - Task scheduling
-  - Priority setting
-  - Resource allocation
+  - Personal tasks (My Tasks)
+  - Team tasks with collaboration
+  - Project-based tasks
+  - Department-level tasks
+  - System-generated tasks
+- Task Properties
+  - Priority levels (Low, Medium, High, Urgent)
+  - Status tracking (Todo, In Progress, Review, Done)
+  - Due dates and reminders
+  - Time estimates and tracking
+  - Labels and categories
+- Module Integration
+  - Lead tasks (follow-ups, qualifications)
+  - Customer tasks (service, meetings)
+  - Opportunity tasks (sales activities)
+  - Purchase tasks (approvals, verifications)
+  - Inventory tasks (stock checks, audits)
+  - Project tasks (milestones, deliverables)
+- Task Features
+  - Subtask support
+  - File attachments
+  - Comments and discussions
   - Time tracking
-  - Deadline management
-- Collaboration
-  - Task assignment
-  - Task sharing
-  - Team coordination
-  - Progress tracking
-  - Comments & discussions
-- Task Analytics
-  - Performance metrics
-  - Time analysis
-  - Completion rates
-  - Bottleneck identification
+  - Activity history
 - Automation
-  - Automated task creation
   - Task templates
   - Recurring tasks
-  - Task dependencies
   - Auto-assignment rules
+  - Due date calculations
+  - Status updates
+- Views & Organization
+  - List view
+  - Kanban board
+  - Calendar view
+  - Timeline view
+  - Custom filters
+- Reporting & Analytics
+  - Task completion rates
+  - Time tracking analysis
+  - Team performance metrics
+  - Workload distribution
+  - Bottleneck identification
+- Calendar Integration
+  - Task deadlines on calendar
+  - Meeting scheduling
+  - Time blocking
+  - Resource allocation
+  - Schedule synchronization
+
+### Calendar & Scheduling (/dashboard/calendar/)
+This is the comprehensive calendar and scheduling section
+Focuses on managing all appointments, meetings, and events
+Features include:
+- Calendar Views
+  - Day view
+  - Week view
+  - Month view
+  - Timeline view
+  - Resource view (staff/rooms)
+  - Multi-calendar overlay
+- Appointment Types
+  - Customer meetings
+  - Sales presentations
+  - Team meetings
+  - Training sessions
+  - Service appointments
+  - Follow-up calls
+- Booking Management
+  - Online booking system
+  - Availability management
+  - Resource scheduling
+  - Buffer time settings
+  - Recurring appointments
+  - Group bookings
+- Resource Management
+  - Staff availability
+  - Room/facility booking
+  - Equipment allocation
+  - Capacity planning
+  - Conflict detection
+- Integration Features
+  - Task synchronization
+  - Customer appointments
+  - Lead follow-ups
+  - Sales meetings
+  - Project milestones
+  - Purchase meetings
+- Notification System
+  - Email reminders
+  - SMS notifications
+  - Calendar invites
+  - Schedule changes
+  - Cancellation notices
+- Advanced Features
+  - Time zone support
+  - Video meeting links
+  - Custom scheduling rules
+  - Booking preferences
+  - Availability policies
+- Analytics & Reports
+  - Booking statistics
+  - Resource utilization
+  - Attendance tracking
+  - Schedule efficiency
+  - Cancellation analysis
 
 ## Directory Structure
 
@@ -443,6 +526,34 @@ pages/
 │   │       ├── performance.vue    # Performance
 │   │       ├── time.vue           # Time analysis
 │   │       └── team.vue           # Team metrics
+│   ├── calendar/                  # Calendar & Scheduling
+│   │   ├── index.vue             # Calendar dashboard
+│   │   ├── day.vue               # Day view
+│   │   ├── week.vue              # Week view
+│   │   ├── month.vue             # Month view
+│   │   ├── schedule/             # Scheduling
+│   │   │   ├── index.vue         # Schedule overview
+│   │   │   ├── availability.vue   # Manage availability
+│   │   │   └── resources.vue     # Resource management
+│   │   │
+│   │   ├── appointments/         # Appointments
+│   │   │   ├── index.vue         # All appointments
+│   │   │   ├── new.vue           # Create appointment
+│   │   │   └── [id]/             # Single appointment
+│   │   │       ├── index.vue     # Appointment details
+│   │   │       └── edit.vue      # Edit appointment
+│   │   │
+│   │   ├── bookings/             # Booking System
+│   │   │   ├── index.vue         # Booking dashboard
+│   │   │   ├── settings.vue      # Booking settings
+│   │   │   └── [type]/           # Booking types
+│   │   │       ├── index.vue     # Type details
+│   │   │       └── customize.vue  # Customize type
+│   │   │
+│   │   └── reports/              # Calendar Reports
+│   │       ├── usage.vue         # Usage analysis
+│   │       ├── resources.vue     # Resource reports
+│   │       └── efficiency.vue    # Efficiency metrics
 
 components/
 ├── auth/                         # Auth components
@@ -528,6 +639,21 @@ components/
 │       ├── TimeAnalysis.vue
 │       └── TeamPerformance.vue
 │
+├── calendar/                    # Calendar components
+│   ├── CalendarView.vue        # Main calendar
+│   ├── DayView.vue            # Day calendar
+│   ├── WeekView.vue           # Week calendar
+│   ├── MonthView.vue          # Month calendar
+│   ├── TimelineView.vue       # Timeline view
+│   ├── ResourceView.vue       # Resource calendar
+│   ├── AppointmentForm.vue    # Appointment form
+│   ├── BookingWidget.vue      # Booking widget
+│   ├── AvailabilityGrid.vue   # Availability editor
+│   └── reports/               # Calendar reports
+│       ├── UsageMetrics.vue
+│       ├── ResourceStats.vue
+│       └── ScheduleAnalysis.vue
+│
 └── ui/                          # Shared UI components
     ├── Button.vue
     ├── Input.vue
@@ -565,6 +691,13 @@ composables/
 │   ├── useTaskTemplates.ts    # Template management
 │   ├── useTaskComments.ts     # Comments system
 │   └── useTaskMetrics.ts      # Performance metrics
+├── useCalendar/               # Calendar composables
+│   ├── useCalendarView.ts    # Calendar view logic
+│   ├── useAppointments.ts    # Appointment management
+│   ├── useBookings.ts        # Booking system
+│   ├── useAvailability.ts    # Availability management
+│   ├── useResources.ts       # Resource management
+│   └── useSchedule.ts        # Scheduling logic
 
 layouts/
 ├── default.vue                  # Default layout
@@ -621,12 +754,22 @@ utils/
 - Conversion process
 - Activity history
 - Notes and tasks
+- Calendar Integration
+  - Follow-up scheduling
+  - Meeting planning
+  - Activity timeline
+  - Reminder settings
 
 ### Customer Management
 - Full customer profiles
 - Communication history
 - Document management
 - Activity tracking
+- Calendar Integration
+  - Service appointments
+  - Regular meetings
+  - Follow-up scheduling
+  - Availability booking
 
 ### Opportunities
 - Pipeline management
@@ -639,6 +782,11 @@ utils/
   - Stock reservation for opportunities
   - Custom pricing based on quantity
   - Stock allocation tracking
+- Calendar Integration
+  - Sales meetings
+  - Presentations
+  - Client visits
+  - Follow-up scheduling
 
 ### Quotes
 - Quote generation
@@ -653,6 +801,15 @@ utils/
 - Stock movements
 - Inventory reporting
 - Integration with opportunities
+  - Stock reservation for opportunities
+  - Stock allocation tracking
+  - Opportunity-specific pricing
+  - Stock availability checks
+- Task Integration
+  - Stock check tasks
+  - Reorder tasks
+  - Audit tasks
+  - Maintenance tasks
 
 ### Stock Management
 - Inventory tracking
@@ -674,6 +831,9 @@ utils/
 - Appointment booking
 - Resource allocation
 - Availability tracking
+- Reminder system
+- Recurring appointments
+- Schedule optimization
 
 ### Purchase Management
 - Purchase Orders (PO)
@@ -712,6 +872,16 @@ utils/
   - Accounting integration
   - Budget management
   - Payment tracking
+- Task Integration
+  - Purchase approval tasks
+  - Follow-up tasks
+  - Receipt verification tasks
+  - Payment tasks
+- Calendar Integration
+  - Supplier meetings
+  - Delivery schedules
+  - Review meetings
+  - Payment schedules
 
 ### Task Management
 - Task Organization
@@ -757,6 +927,66 @@ utils/
   - Recurring tasks
   - Task dependencies
   - Auto-assignment rules
+- Calendar Integration
+  - Task deadlines on calendar
+  - Meeting scheduling
+  - Time blocking
+  - Resource allocation
+  - Schedule synchronization
+
+### Calendar & Scheduling
+- Calendar Views
+  - Day view
+  - Week view
+  - Month view
+  - Timeline view
+  - Resource view (staff/rooms)
+  - Multi-calendar overlay
+- Appointment Types
+  - Customer meetings
+  - Sales presentations
+  - Team meetings
+  - Training sessions
+  - Service appointments
+  - Follow-up calls
+- Booking Management
+  - Online booking system
+  - Availability management
+  - Resource scheduling
+  - Buffer time settings
+  - Recurring appointments
+  - Group bookings
+- Resource Management
+  - Staff availability
+  - Room/facility booking
+  - Equipment allocation
+  - Capacity planning
+  - Conflict detection
+- Integration Features
+  - Task synchronization
+  - Customer appointments
+  - Lead follow-ups
+  - Sales meetings
+  - Project milestones
+  - Purchase meetings
+- Notification System
+  - Email reminders
+  - SMS notifications
+  - Calendar invites
+  - Schedule changes
+  - Cancellation notices
+- Advanced Features
+  - Time zone support
+  - Video meeting links
+  - Custom scheduling rules
+  - Booking preferences
+  - Availability policies
+- Analytics & Reports
+  - Booking statistics
+  - Resource utilization
+  - Attendance tracking
+  - Schedule efficiency
+  - Cancellation analysis
 
 ## URL Structure
 
@@ -826,3 +1056,13 @@ utils/
 /dashboard/tasks/[id]
 /dashboard/tasks/templates
 /dashboard/tasks/reports
+
+# Calendar & Scheduling
+/dashboard/calendar
+/dashboard/calendar/day
+/dashboard/calendar/week
+/dashboard/calendar/month
+/dashboard/calendar/schedule
+/dashboard/calendar/appointments
+/dashboard/calendar/bookings
+/dashboard/calendar/reports
