@@ -360,6 +360,100 @@ Features include:
   - Schedule efficiency
   - Cancellation analysis
 
+### Notification System (/dashboard/notifications/)
+This is the comprehensive notification management section
+Focuses on system-wide notifications and alerts
+Features include:
+- Notification Types
+  - System notifications
+  - Task notifications
+  - Calendar reminders
+  - Lead updates
+  - Customer activities
+  - Opportunity alerts
+  - Purchase approvals
+  - Inventory alerts
+  - Team mentions
+  - Comments & replies
+- Delivery Channels
+  - In-app notifications
+  - Email notifications
+  - SMS alerts
+  - Push notifications
+  - Slack integration
+  - Teams integration
+- Notification Settings
+  - Channel preferences
+  - Frequency settings
+  - Priority levels
+  - Quiet hours
+  - Group settings
+- Real-time Features
+  - Live notifications
+  - Instant delivery
+  - Read receipts
+  - Action buttons
+  - Quick responses
+- Template Management
+  - Custom templates
+  - Dynamic content
+  - Multi-language support
+  - Rich media support
+  - Template variables
+- Notification Center
+  - Unified inbox
+  - Filter options
+  - Batch actions
+  - Archive system
+  - Search functionality
+
+### Activity Tracking (/dashboard/activities/)
+This is the comprehensive activity logging system
+Focuses on tracking all user and system activities
+Features include:
+- Activity Types
+  - User actions
+  - System events
+  - Data changes
+  - Access logs
+  - Error logs
+  - Security events
+- Activity Categories
+  - Authentication events
+  - User management
+  - Lead activities
+  - Customer interactions
+  - Sales activities
+  - Purchase events
+  - Inventory changes
+  - Task updates
+  - Calendar events
+- Tracking Features
+  - Timestamp logging
+  - User attribution
+  - IP tracking
+  - Device information
+  - Location data
+  - Session tracking
+- Activity Details
+  - Action description
+  - Related entities
+  - Before/after states
+  - Associated users
+  - Context information
+- Audit Features
+  - Data change history
+  - Version control
+  - Rollback capability
+  - Compliance logging
+  - Access tracking
+- Analytics & Reports
+  - Activity trends
+  - User statistics
+  - System usage
+  - Security analysis
+  - Performance metrics
+
 ## Directory Structure
 
 ```
@@ -554,6 +648,38 @@ pages/
 │   │       ├── usage.vue         # Usage analysis
 │   │       ├── resources.vue     # Resource reports
 │   │       └── efficiency.vue    # Efficiency metrics
+│   ├── notifications/              # Notification Management
+│   │   ├── index.vue              # Notification center
+│   │   ├── settings/              # Notification Settings
+│   │   │   ├── index.vue          # Settings overview
+│   │   │   ├── channels.vue       # Channel settings
+│   │   │   └── templates.vue      # Template management
+│   │   │
+│   │   ├── templates/             # Notification Templates
+│   │   │   ├── index.vue          # Template list
+│   │   │   ├── new.vue            # Create template
+│   │   │   └── [id]/              # Single template
+│   │   │       ├── index.vue      # Template details
+│   │   │       └── edit.vue       # Edit template
+│   │   │
+│   │   └── history/               # Notification History
+│   │       ├── index.vue          # History list
+│   │       └── [id].vue           # Single notification
+│   ├── activities/                # Activity Tracking
+│   │   ├── index.vue              # Activity dashboard
+│   │   ├── all/                   # All Activities
+│   │   │   ├── index.vue          # Activity list
+│   │   │   └── search.vue         # Advanced search
+│   │   │
+│   │   ├── audit/                 # Audit Logs
+│   │   │   ├── index.vue          # Audit dashboard
+│   │   │   ├── changes.vue        # Data changes
+│   │   │   └── access.vue         # Access logs
+│   │   │
+│   │   └── reports/               # Activity Reports
+│   │       ├── usage.vue          # Usage analysis
+│   │       ├── security.vue       # Security report
+│   │       └── compliance.vue     # Compliance report
 
 components/
 ├── auth/                         # Auth components
@@ -654,6 +780,25 @@ components/
 │       ├── ResourceStats.vue
 │       └── ScheduleAnalysis.vue
 │
+├── notifications/               # Notification components
+│   ├── NotificationBell.vue    # Notification icon
+│   ├── NotificationList.vue    # Notification list
+│   ├── NotificationItem.vue    # Single notification
+│   ├── ChannelSettings.vue     # Channel preferences
+│   ├── TemplateEditor.vue      # Template editor
+│   └── NotificationCenter.vue  # Notification center
+│
+├── activities/                 # Activity components
+│   ├── ActivityFeed.vue       # Activity stream
+│   ├── ActivityItem.vue       # Single activity
+│   ├── ActivityFilter.vue     # Activity filters
+│   ├── AuditLog.vue          # Audit log viewer
+│   ├── ChangeHistory.vue     # Change history
+│   └── reports/              # Activity reports
+│       ├── UsageStats.vue
+│       ├── SecurityReport.vue
+│       └── ComplianceLog.vue
+│
 └── ui/                          # Shared UI components
     ├── Button.vue
     ├── Input.vue
@@ -698,6 +843,17 @@ composables/
 │   ├── useAvailability.ts    # Availability management
 │   ├── useResources.ts       # Resource management
 │   └── useSchedule.ts        # Scheduling logic
+├── useNotifications/          # Notification composables
+│   ├── useNotificationCenter.ts # Notification management
+│   ├── useNotifyChannels.ts    # Channel management
+│   ├── useTemplates.ts         # Template management
+│   └── useNotifySettings.ts    # Settings management
+│
+├── useActivities/             # Activity composables
+│   ├── useActivityLog.ts      # Activity logging
+│   ├── useAuditTrail.ts       # Audit functionality
+│   ├── useChangeTracking.ts   # Change tracking
+│   └── useActivityMetrics.ts  # Activity analytics
 
 layouts/
 ├── default.vue                  # Default layout
@@ -724,7 +880,11 @@ types/
 ├── invoice.ts                  # Invoice types
 ├── task.ts                     # Task types
 ├── taskTemplate.ts            # Template types
-└── taskMetrics.ts            # Metrics types
+├── taskMetrics.ts            # Metrics types
+├── notification.ts           # Notification types
+├── notifyTemplate.ts        # Template types
+├── activity.ts              # Activity types
+└── audit.ts                # Audit types
 
 utils/
 ├── constants.ts                 # Constants
@@ -988,6 +1148,94 @@ utils/
   - Schedule efficiency
   - Cancellation analysis
 
+### Notification System
+- Notification Types
+  - System notifications
+  - Task notifications
+  - Calendar reminders
+  - Lead updates
+  - Customer activities
+  - Opportunity alerts
+  - Purchase approvals
+  - Inventory alerts
+  - Team mentions
+  - Comments & replies
+- Delivery Channels
+  - In-app notifications
+  - Email notifications
+  - SMS alerts
+  - Push notifications
+  - Slack integration
+  - Teams integration
+- Notification Settings
+  - Channel preferences
+  - Frequency settings
+  - Priority levels
+  - Quiet hours
+  - Group settings
+- Real-time Features
+  - Live notifications
+  - Instant delivery
+  - Read receipts
+  - Action buttons
+  - Quick responses
+- Template Management
+  - Custom templates
+  - Dynamic content
+  - Multi-language support
+  - Rich media support
+  - Template variables
+- Notification Center
+  - Unified inbox
+  - Filter options
+  - Batch actions
+  - Archive system
+  - Search functionality
+
+### Activity Tracking
+- Activity Types
+  - User actions
+  - System events
+  - Data changes
+  - Access logs
+  - Error logs
+  - Security events
+- Activity Categories
+  - Authentication events
+  - User management
+  - Lead activities
+  - Customer interactions
+  - Sales activities
+  - Purchase events
+  - Inventory changes
+  - Task updates
+  - Calendar events
+- Tracking Features
+  - Timestamp logging
+  - User attribution
+  - IP tracking
+  - Device information
+  - Location data
+  - Session tracking
+- Activity Details
+  - Action description
+  - Related entities
+  - Before/after states
+  - Associated users
+  - Context information
+- Audit Features
+  - Data change history
+  - Version control
+  - Rollback capability
+  - Compliance logging
+  - Access tracking
+- Analytics & Reports
+  - Activity trends
+  - User statistics
+  - System usage
+  - Security analysis
+  - Performance metrics
+
 ## URL Structure
 
 ```
@@ -1066,3 +1314,17 @@ utils/
 /dashboard/calendar/appointments
 /dashboard/calendar/bookings
 /dashboard/calendar/reports
+
+# Notifications
+/dashboard/notifications
+/dashboard/notifications/settings
+/dashboard/notifications/templates
+/dashboard/notifications/templates/new
+/dashboard/notifications/templates/[id]
+/dashboard/notifications/history
+
+# Activities
+/dashboard/activities
+/dashboard/activities/all
+/dashboard/activities/audit
+/dashboard/activities/reports
