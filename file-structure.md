@@ -47,6 +47,12 @@ Features include:
 - Conversion tracking
 - Activity logging
 - Task assignment
+- Task Integration
+  - Follow-up tasks
+  - Contact tasks
+  - Qualification tasks
+  - Auto-task creation
+  - Task templates
 
 ### Customers (/dashboard/customers/)
 This is the customer relationship section
@@ -59,6 +65,11 @@ Features include:
 - Document management
 - Customer segmentation
 - Account health tracking
+- Task Integration
+  - Customer service tasks
+  - Account management tasks
+  - Meeting schedules
+  - Follow-up reminders
 
 ### Opportunities (/dashboard/customers/[id]/opportunities/)
 This is the sales pipeline section
@@ -77,6 +88,11 @@ Features include:
   - Stock reservation for opportunities
   - Custom pricing based on quantity
   - Stock allocation tracking
+- Task Integration
+  - Sales tasks
+  - Follow-up tasks
+  - Proposal tasks
+  - Meeting tasks
 
 ### Quotes (/dashboard/customers/[id]/quotes/)
 This is the quotation management section
@@ -125,6 +141,11 @@ Features include:
   - Stock allocation tracking
   - Opportunity-specific pricing
   - Stock availability checks
+- Task Integration
+  - Stock check tasks
+  - Reorder tasks
+  - Audit tasks
+  - Maintenance tasks
 
 ### Stock Management (/dashboard/customers/[id]/stocks/)
 This is the inventory management section
@@ -202,6 +223,59 @@ Features include:
   - Accounting integration
   - Budget management
   - Payment tracking
+- Task Integration
+  - Purchase approval tasks
+  - Follow-up tasks
+  - Receipt verification tasks
+  - Payment tasks
+
+### Task Management (/dashboard/tasks/)
+This is the comprehensive task management section
+Focuses on tracking and managing all system tasks
+Features include:
+- Task Organization
+  - Personal tasks
+  - Team tasks
+  - Project tasks
+  - Department tasks
+  - Company-wide tasks
+- Task Categories
+  - Follow-ups
+  - Approvals
+  - Reviews
+  - Meetings
+  - Deadlines
+  - Reminders
+- Task Integration
+  - Lead-related tasks
+  - Customer-related tasks
+  - Opportunity tasks
+  - Purchase tasks
+  - Inventory tasks
+  - Project tasks
+- Task Planning
+  - Task scheduling
+  - Priority setting
+  - Resource allocation
+  - Time tracking
+  - Deadline management
+- Collaboration
+  - Task assignment
+  - Task sharing
+  - Team coordination
+  - Progress tracking
+  - Comments & discussions
+- Task Analytics
+  - Performance metrics
+  - Time analysis
+  - Completion rates
+  - Bottleneck identification
+- Automation
+  - Automated task creation
+  - Task templates
+  - Recurring tasks
+  - Task dependencies
+  - Auto-assignment rules
 
 ## Directory Structure
 
@@ -337,6 +411,38 @@ pages/
 │   │       ├── spending.vue       # Spending analysis
 │   │       ├── suppliers.vue      # Supplier analysis
 │   │       └── budget.vue         # Budget tracking
+│   ├── tasks/                     # Task Management
+│   │   ├── index.vue              # Task dashboard
+│   │   ├── all/                   # All Tasks
+│   │   │   ├── index.vue          # Task list
+│   │   │   ├── calendar.vue       # Calendar view
+│   │   │   └── board.vue          # Kanban board
+│   │   │
+│   │   ├── my-tasks/              # Personal Tasks
+│   │   │   ├── index.vue          # My task list
+│   │   │   ├── today.vue          # Today's tasks
+│   │   │   └── upcoming.vue       # Upcoming tasks
+│   │   │
+│   │   ├── team/                  # Team Tasks
+│   │   │   ├── index.vue          # Team overview
+│   │   │   └── [teamId]/          # Team specific
+│   │   │       ├── index.vue      # Team tasks
+│   │   │       └── members.vue    # Team members
+│   │   │
+│   │   ├── [id]/                  # Single Task
+│   │   │   ├── index.vue          # Task details
+│   │   │   ├── edit.vue           # Edit task
+│   │   │   └── subtasks.vue       # Subtasks
+│   │   │
+│   │   ├── templates/             # Task Templates
+│   │   │   ├── index.vue          # Template list
+│   │   │   ├── new.vue            # Create template
+│   │   │   └── [id].vue          # Edit template
+│   │   │
+│   │   └── reports/               # Task Reports
+│   │       ├── performance.vue    # Performance
+│   │       ├── time.vue           # Time analysis
+│   │       └── team.vue           # Team metrics
 
 components/
 ├── auth/                         # Auth components
@@ -407,6 +513,21 @@ components/
 │       ├── SupplierMetrics.vue
 │       └── BudgetTracking.vue
 │
+├── tasks/                       # Task components
+│   ├── TaskCard.vue            # Task display
+│   ├── TaskForm.vue            # Task form
+│   ├── TaskList.vue            # Task list
+│   ├── TaskBoard.vue           # Kanban board
+│   ├── TaskCalendar.vue        # Calendar view
+│   ├── TaskFilter.vue          # Task filters
+│   ├── SubtaskList.vue         # Subtasks
+│   ├── TaskComments.vue        # Comments
+│   ├── TaskTimer.vue           # Time tracking
+│   └── reports/                # Report components
+│       ├── TaskMetrics.vue
+│       ├── TimeAnalysis.vue
+│       └── TeamPerformance.vue
+│
 └── ui/                          # Shared UI components
     ├── Button.vue
     ├── Input.vue
@@ -437,6 +558,13 @@ composables/
 │   ├── usePlanning.ts          # Purchase planning
 │   ├── useInvoices.ts          # Invoice management
 │   └── useApprovals.ts         # Approval workflows
+├── useTasks/                   # Task composables
+│   ├── useTaskList.ts         # Task list management
+│   ├── useTaskBoard.ts        # Kanban board logic
+│   ├── useTaskCalendar.ts     # Calendar integration
+│   ├── useTaskTemplates.ts    # Template management
+│   ├── useTaskComments.ts     # Comments system
+│   └── useTaskMetrics.ts      # Performance metrics
 
 layouts/
 ├── default.vue                  # Default layout
@@ -460,7 +588,10 @@ types/
 ├── inventory.ts                 # Inventory types
 ├── purchase.ts                  # Purchase types
 ├── requisition.ts              # Requisition types
-└── invoice.ts                  # Invoice types
+├── invoice.ts                  # Invoice types
+├── task.ts                     # Task types
+├── taskTemplate.ts            # Template types
+└── taskMetrics.ts            # Metrics types
 
 utils/
 ├── constants.ts                 # Constants
@@ -582,6 +713,51 @@ utils/
   - Budget management
   - Payment tracking
 
+### Task Management
+- Task Organization
+  - Personal tasks
+  - Team tasks
+  - Project tasks
+  - Department tasks
+  - Company-wide tasks
+- Task Categories
+  - Follow-ups
+  - Approvals
+  - Reviews
+  - Meetings
+  - Deadlines
+  - Reminders
+- Task Integration
+  - Lead-related tasks
+  - Customer-related tasks
+  - Opportunity tasks
+  - Purchase tasks
+  - Inventory tasks
+  - Project tasks
+- Task Planning
+  - Task scheduling
+  - Priority setting
+  - Resource allocation
+  - Time tracking
+  - Deadline management
+- Collaboration
+  - Task assignment
+  - Task sharing
+  - Team coordination
+  - Progress tracking
+  - Comments & discussions
+- Task Analytics
+  - Performance metrics
+  - Time analysis
+  - Completion rates
+  - Bottleneck identification
+- Automation
+  - Automated task creation
+  - Task templates
+  - Recurring tasks
+  - Task dependencies
+  - Auto-assignment rules
+
 ## URL Structure
 
 ```
@@ -640,3 +816,13 @@ utils/
 /dashboard/purchases/invoices/new
 /dashboard/purchases/invoices/[id]
 /dashboard/purchases/reports
+
+# Task Management
+/dashboard/tasks
+/dashboard/tasks/all
+/dashboard/tasks/my-tasks
+/dashboard/tasks/team
+/dashboard/tasks/team/[teamId]
+/dashboard/tasks/[id]
+/dashboard/tasks/templates
+/dashboard/tasks/reports
