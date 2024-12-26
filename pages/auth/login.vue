@@ -23,71 +23,60 @@ const { meta, handleSubmit, defineField, errors } = useForm({
 const [email, emailAttrs] = defineField('email');
 const [password, passwordAttrs] = defineField('password');
 
-const { signInWithEmailAndPassword, signInWithOAuth, checkSession,isAuthenticated, loading, error } = useAuth();
+const { signInWithEmailAndPassword, signInWithSocialProvider, loading, error } = useAuth();
 
-const onSubmit = handleSubmit(async (values, { resetForm }) => {
-  const { email, password } = values;
-  loading.value = true;
-  start();
+const onSubmit = handleSubmit(async (values) => {
   try {
-    const { session } = await signInWithEmailAndPassword(email, password);
-    if (session) {
-      toast({
-        title: 'Signed in successfully',
-        description: 'Welcome to the platform.',
-        variant: 'success',      
-      });
-
-      resetForm();
-      
-      // Check for intended route and redirect accordingly
-      const intendedRoute = localStorage.getItem('intendedRoute');
-      if (intendedRoute) {
-        localStorage.removeItem('intendedRoute');
-        await navigateTo(intendedRoute);
-      } else {
-        await navigateTo('/dashboard');
-      }
-    } else {
-      throw new Error('No session data returned');
-    }
+    start();
+    const { data, error: loginError } = await signInWithEmailAndPassword(values.email, values.password);
     
-  } catch (error) {
+    if (loginError) {
+      toast({
+        title: 'Error',
+        description: loginError.message,
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (data) {
+      toast({
+        title: 'Welcome back!',
+        description: 'Successfully signed in.',
+        variant: 'success',
+      });
+    }
+  } catch (e: any) {
     toast({
-      title: 'An Error Occurred',
-      description: (error as Error)?.message || 'Failed to sign in. Please try again later.',
-      variant: 'destructive',      
+      title: 'Error',
+      description: e.message || 'An error occurred during sign in',
+      variant: 'destructive',
     });
-  }
-  finally {
-    loading.value = false;
+  } finally {
     finish();
   }
 });
 
 const handleSocialLogin = async (providerName: AuthSocialProvider) => {
-  if (providerName === 'github' || providerName === 'google' || providerName === 'facebook') {
-    try {
-      loading.value = true;
-      start();
-      await signInWithOAuth(providerName);
-      // Note: The redirect handling will be managed by Supabase's OAuth flow
-    } catch (error) {
+  try {
+    start();
+    const { error: socialError } = await signInWithSocialProvider(providerName);
+    
+    if (socialError) {
       toast({
-        title: 'Authentication Error',
-        description: (error as Error)?.message || `Failed to sign in with ${providerName}.`,
+        title: 'Error',
+        description: socialError.message,
         variant: 'destructive',
       });
-    } finally {
-      loading.value = false;
-      finish();
     }
-  } else {
+  } catch (e: any) {
     toast({
-      title: 'Unsupported Provider',
-      description: `Provider '${providerName}' is not supported.`,
+      title: 'Error',
+      description: e.message || 'Failed to initialize social login',
       variant: 'destructive',
     });
+  } finally {
+    finish();
   }
 };
 
@@ -102,7 +91,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="p-6 space-y-6 border rounded-lg shadow-md border-border bg-card sm:p-8 md:p-10">
+  <div class="space-y-6 rounded-lg border border-border bg-card p-6 shadow-md sm:p-8 md:p-10">
     <div class="text-left">
       <h1 class="text-2xl font-bold">Welcome back</h1>
       <p class="mt-2 text-sm text-muted-foreground">
@@ -113,7 +102,7 @@ onMounted(async () => {
     
     <form class="space-y-4" @submit.prevent="onSubmit">
       <div>
-        <UiLabel for="email" class="block mb-1 text-sm font-medium text-foreground">Email</UiLabel>
+        <UiLabel for="email" class="mb-1 block text-sm font-medium text-foreground">Email</UiLabel>
         <UiInput
           id="email"
           v-bind="emailAttrs"
@@ -124,7 +113,7 @@ onMounted(async () => {
         <span v-if="errors.email" class="pt-1 text-sm text-destructive">{{ errors.email }}</span>
       </div>
       <div>
-        <UiLabel for="password" class="block mb-1 text-sm font-medium text-foreground">Password</UiLabel>
+        <UiLabel for="password" class="mb-1 block text-sm font-medium text-foreground">Password</UiLabel>
         <UiInput
           id="password"
           v-bind="passwordAttrs"
@@ -150,7 +139,7 @@ onMounted(async () => {
         <span class="w-full border-t border-border" />
       </div>
       <div class="relative flex justify-center text-xs uppercase">
-        <span class="px-2 bg-card text-muted-foreground">Or continue with</span>
+        <span class="bg-card px-2 text-muted-foreground">Or continue with</span>
       </div>
     </div>
 
@@ -158,7 +147,7 @@ onMounted(async () => {
       <UiButton 
         v-for="provider in AUTH_SOCIAL_PROVIDERS"
         :key="provider.name"
-        class="flex items-center justify-center w-full"
+        class="flex w-full items-center justify-center"
         variant="ghost"
         :disabled="loading"
         @click="handleSocialLogin(provider.name)"
@@ -166,7 +155,7 @@ onMounted(async () => {
         <Icon 
           :name="provider.icon" 
           :size="provider.size" 
-          class="hidden mr-2 sm:inline-block md:mr-0"
+          class="mr-2 hidden sm:inline-block md:mr-0"
         /> 
         <span class="sm:hidden">{{ provider.label }}</span>
         <span class="hidden sm:inline md:hidden lg:inline">{{ provider.label }}</span>
@@ -174,7 +163,7 @@ onMounted(async () => {
     
     </div>
 
-    <p v-if="error" class="text-sm text-center text-destructive">{{ error }}</p>
+    <p v-if="error" class="text-center text-sm text-destructive">{{ error }}</p>
   </div>
 </template>
 

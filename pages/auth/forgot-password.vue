@@ -2,6 +2,7 @@
 import { useAuth } from '~/composables/useAuth';
 import { useToast } from '@/composables/useToast';
 import * as yup from 'yup';
+import { navigateTo } from 'vite-plugin-ssr/client/router';
 
 definePageMeta({
   layout: 'auth',
@@ -18,28 +19,37 @@ const { meta, handleSubmit, defineField, errors } = useForm({
 
 const [email, emailAttrs] = defineField('email');
 
-const { sendPasswordResetEmail, loading, error } = useAuth();
+const { resetPassword, loading, error } = useAuth();
 
 const onSubmit = handleSubmit(async (values) => {
-  const { email } = values;
-  loading.value = true;
-  start();
   try {
-    await sendPasswordResetEmail(email);
+    start();
+    const { error: resetError } = await resetPassword(values.email);
+    
+    if (resetError) {
+      toast({
+        title: 'Error',
+        description: resetError.message,
+        variant: 'destructive',
+      });
+      return;
+    }
+
     toast({
-      title: 'Reset Email Sent',
-      description: 'Please check your email for password reset instructions.',
-      variant: 'success',      
+      title: 'Check your email',
+      description: 'If an account exists with this email, you will receive password reset instructions.',
+      variant: 'success',
     });
-  } catch (error) {
+    
+    // Navigate to confirmation page
+    navigateTo('/auth/thank-you');
+  } catch (e: any) {
     toast({
-      title: 'An Error Occurred',
-      description: (error as Error)?.message || 'Failed to send reset email. Please try again later.',
-      variant: 'destructive',      
+      title: 'Error',
+      description: e.message || 'Failed to send reset email',
+      variant: 'destructive',
     });
-  }
-  finally {
-    loading.value = false;
+  } finally {
     finish();
   }
 });

@@ -5,7 +5,6 @@ import * as yup from 'yup';
 import { AUTH_SOCIAL_PROVIDERS } from '~/utils/constants';
 import type { AuthSocialProvider } from '@/types';
 import { useForm } from 'vee-validate';
-import { navigateTo } from '#app';
 import { definePageMeta } from '#imports';
 
 definePageMeta({
@@ -56,7 +55,7 @@ const handlePasswordFocus = () => {
   showRequirements.value = true;
 };
 
-const { signUp, loading, error, signInWithOAuth } = useAuth();
+const { registerWithEmailAndPassword, signInWithSocialProvider, loading, error } = useAuth();
 
 // Compute whether the form is valid and all fields are filled
 const isFormValid = computed(() => {
@@ -68,39 +67,57 @@ const isFormValid = computed(() => {
 });
 
 const onSubmit = handleSubmit(async (values) => {
-  const { email, password } = values;
-  loading.value = true;
-  start();
   try {
-    await signUp(email, password);
+    start();
+    const { data, error: registerError } = await registerWithEmailAndPassword(values.email, values.password);
+    
+    if (registerError) {
+      toast({
+        title: 'Registration Error',
+        description: registerError.message,
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (data) {
+      toast({
+        title: 'Welcome!',
+        description: 'Your account has been created successfully.',
+        variant: 'success',
+      });
+    }
+  } catch (e: any) {
     toast({
-      title: 'Registration Successful',
-      description: 'Please check your email to verify your account.',
-      variant: 'success',      
+      title: 'Error',
+      description: e.message || 'An error occurred during registration',
+      variant: 'destructive',
     });
-    navigateTo('/auth/login');
-  } catch (error) {
-    toast({
-      title: 'An Error Occurred',
-      description: (error as Error)?.message || 'Failed to register. Please try again later.',
-      variant: 'destructive',      
-    });
-  }
-  finally {
-    loading.value = false;
+  } finally {
     finish();
   }
 });
 
-const handleSocialLogin = (providerName: AuthSocialProvider) => {
-  if (providerName === 'github' || providerName === 'google' || providerName === 'facebook') {
-    signInWithOAuth(providerName);
-  } else {
+const handleSocialLogin = async (providerName: AuthSocialProvider) => {
+  try {
+    start();
+    const { error: socialError } = await signInWithSocialProvider(providerName);
+    
+    if (socialError) {
+      toast({
+        title: 'Error',
+        description: socialError.message,
+        variant: 'destructive',
+      });
+    }
+  } catch (e: any) {
     toast({
-      title: 'Unsupported Provider',
-      description: `Provider '${providerName}' is not supported.`,
+      title: 'Error',
+      description: e.message || 'Failed to initialize social login',
       variant: 'destructive',
     });
+  } finally {
+    finish();
   }
 };
 

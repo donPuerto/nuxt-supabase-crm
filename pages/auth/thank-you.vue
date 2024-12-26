@@ -1,20 +1,44 @@
 <script setup lang="ts">
 import { useToast } from '@/composables/useToast';
+import { useLoadingIndicator } from '@/composables/useLoadingIndicator';
 
 definePageMeta({
   layout: 'auth',
   middleware: 'guest',
 });
 
-const { loading } = useAuth();
+const { resendVerificationEmail, loading } = useAuth();
 const { toast } = useToast();
+const { start, finish } = useLoadingIndicator();
 
 const handleResendEmail = async () => {
-  toast({
-    title: 'Coming Soon',
-    description: 'Resend email functionality will be available soon.',
-    variant: 'default',
-  });
+  try {
+    start();
+    const { error: resendError } = await resendVerificationEmail();
+    
+    if (resendError) {
+      toast({
+        title: 'Error',
+        description: resendError.message,
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    toast({
+      title: 'Email Sent',
+      description: 'A new verification email has been sent to your inbox.',
+      variant: 'success',
+    });
+  } catch (e: any) {
+    toast({
+      title: 'Error',
+      description: e.message || 'Failed to resend verification email',
+      variant: 'destructive',
+    });
+  } finally {
+    finish();
+  }
 };
 </script>
 

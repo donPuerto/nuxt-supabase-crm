@@ -68,13 +68,12 @@ const socialLinks = [
     <nav class="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div class="container flex h-16 items-center justify-between">
         <div class="flex items-center gap-2">
-          <div class="relative">
-            <Icon name="carbon:data-vis" class="size-10 text-primary" />
-            <Icon name="carbon:add-alt" class="absolute -right-1 -top-1 size-5 text-primary" />
+          <div class="flex items-center justify-center">
+            <Icon name="carbon:compass" class="size-8 text-primary opacity-90" />
           </div>
-          <div class="flex flex-col">
-            <span class="text-2xl font-bold tracking-tight text-foreground">Insight<span class="text-primary">+</span></span>
-            <span class="text-sm text-muted-foreground">AI-Enhanced Customer Relations</span>
+          <div class="flex items-center gap-2">
+            <span class="text-2xl font-bold tracking-tight text-foreground">Pathfinder <span class="bg-gradient-to-r from-primary to-primary/80 bg-clip-text font-extrabold text-transparent">AI</span></span>
+            <span class="text-xs font-medium text-muted-foreground">Navigating Intelligence</span>
           </div>
         </div>
         <div class="flex items-center space-x-4">
@@ -97,11 +96,11 @@ const socialLinks = [
       <div class="relative z-10 py-16 lg:py-28">
         <div class="space-y-6 text-center lg:text-left">
           <h1 class="text-4xl font-bold tracking-tight text-foreground sm:text-5xl md:text-6xl">
-            <span class="block">Customer insights</span>
-            <span class="block text-primary">amplified by AI</span>
+            <span class="block">Transform Data into</span>
+            <span class="block text-primary">Customer Success</span>
           </h1>
           <p class="mx-auto text-lg text-muted-foreground lg:mx-0">
-            Transform your customer relationships with AI-powered insights. Predict needs, personalize interactions, and make smarter decisions with unprecedented clarity.
+            Unlock deeper customer understanding with AI-powered insights. Turn every interaction into an opportunity with intelligent predictions and personalized engagement.
           </p>
           <div class="flex flex-col items-center gap-4 sm:flex-row sm:justify-center lg:justify-start">
             <UiButton size="lg" variant="default" as-child>
@@ -123,7 +122,7 @@ const socialLinks = [
     <section id="features" class="container space-y-12 py-16">
       <div class="space-y-6 text-center">
         <div class="space-y-2">
-          <UiBadge variant="outline" class="border-primary/20 text-primary">AI-Powered Features</UiBadge>
+          <UiBadge variant="outline" class="border-primary/20 text-primary">Powered by AI</UiBadge>
           <h2 class="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
             Intelligence that grows with you
           </h2>

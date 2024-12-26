@@ -1,40 +1,202 @@
-export const useAuth = () => {
-  const supabase = useSupabaseClient();
+import type { Provider } from '@supabase/supabase-js';
+import type { Database } from '~/types/supabase';
+
+interface UserProfile {
+  // Primary identification
+  id: string;  // UUID from auth.users
+  email: string;
+  username: string;  // @username format
+
+  // Personal information
+  first_name: string;
+  last_name: string;
+  display_name?: string;
+  date_of_birth?: string;  // Date stored as string in TypeScript
+  gender?: 'male' | 'female' | 'other' | 'prefer_not_to_say';
+  avatar_url?: string;
+  bio?: string;
+
+  // Professional information
+  company?: string;
+  job_title?: string;
+  department?: string;
+  industry?: string;
+  website?: string;
+
+  // Account settings
+  status: 'active' | 'inactive' | 'suspended' | 'pending';
+  preferred_language?: string;
+  timezone?: string;
+  is_active: boolean;
+
+  // Onboarding and verification
+  onboarding_completed: boolean;
+  onboarding_step?: number;
+  email_verified: boolean;
+  terms_accepted: boolean;
+  privacy_accepted: boolean;
+  marketing_consent?: boolean;
+
+  // Security
+  two_factor_enabled: boolean;
+  last_login_at?: string;
+  last_active_at?: string;
+
+  // Audit fields
+  created_at: string;
+  created_by?: string;  // UUID stored as string
+  updated_at: string;
+  updated_by?: string;  // UUID stored as string
+  deleted_at?: string;
+  deleted_by?: string;  // UUID stored as string
+  version: number;
+}
+
+interface UserPreferences {
+  id: string;
+  user_id: string;
+
+  // Notification preferences
+  email_notifications: boolean;
+  sms_notifications: boolean;
+  push_notifications: boolean;
+  in_app_notifications: boolean;
+
+  // Email preferences
+  weekly_digest: boolean;
+  marketing_emails: boolean;
+
+  // UI preferences
+  theme: 'system' | 'light' | 'dark';
+  sidebar_collapsed: boolean;
+  display_density: 'comfortable' | 'compact' | 'spacious';
+
+  // Audit fields
+  created_at: string;
+  created_by?: string;
+  updated_at: string;
+  updated_by?: string;
+  deleted_at?: string;
+  deleted_by?: string;
+}
+
+export const useAuth = (): {
+  user: any;
+  userProfile: Ref<UserProfile | null>;
+  userPreferences: Ref<UserPreferences | null>;
+  loading: Ref<boolean>;
+  error: Ref<string>;
+  isAuthenticated: ComputedRef<boolean>;
+  checkSession: () => Promise<boolean>;
+  refreshSession: () => Promise<any>;
+  registerWithEmailAndPassword: (email: string, password: string) => Promise<any>;
+  signInWithEmailAndPassword: (email: string, password: string) => Promise<any>;
+  signInWithSocialProvider: (provider: Provider) => Promise<any>;
+  resetPassword: (email: string) => Promise<any>;
+  updatePassword: (newPassword: string) => Promise<any>;
+  updateProfile: (profile: Partial<UserProfile>) => Promise<any>;
+  updatePreferences: (preferences: Partial<UserPreferences>) => Promise<any>;
+  completeOnboarding: () => Promise<any>;
+  signOut: () => Promise<void>;
+  setupAuthListener: () => () => void;
+  fetchUserProfile: () => Promise<UserProfile | null>;
+} => {
+  const supabase = useSupabaseClient<Database>();
   const user = useSupabaseUser();
   const loading = ref(false);
   const error = ref('');
+  const router = useRouter();
 
   const isAuthenticated = computed(() => !!user.value);
+  const userProfile = ref<UserProfile | null>(null);
+  const userPreferences = ref<UserPreferences | null>(null);
 
-  // Function to set up auth state change listener
-  const setupAuthListener = () => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      // Update the user value when the auth state changes
-      user.value = session?.user || null;
-
-      // You can add more logic here based on the event type
-      switch (event) {
-      case 'SIGNED_IN':
-        console.log('User signed in:', session?.user);
-        break;
-      case 'SIGNED_OUT':
-        console.log('User signed out');
-        break;
-      case 'USER_UPDATED':
-        console.log('User updated:', session?.user);
-        break;
-      case 'PASSWORD_RECOVERY':
-        console.log('Password recovery event received');
-        break;
-      }
-    });
-
-    // Return the cleanup function
-    return () => {
-      subscription.unsubscribe();
-    };
+  // Session Management
+  const checkSession = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    return !!session;
   };
 
+  const refreshSession = async () => {
+    const { data: { session }, error: refreshError } = await supabase.auth.refreshSession();
+    if (refreshError) throw refreshError;
+    return session;
+  };
+
+  // Profile Management
+  const fetchUserProfile = async (): Promise<UserProfile | null> => {
+    loading.value = true;
+    const { data, error: fetchError } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.value?.id)
+      .single();
+
+    if (fetchError) {
+      error.value = fetchError.message;
+      loading.value = false;
+      return null;
+    }
+
+    userProfile.value = data;
+    loading.value = false;
+    return data;
+  };
+
+  const fetchUserPreferences = async () => {
+    if (!user.value?.id) return null;
+
+    const { data, error: prefError } = await supabase
+      .from('user_preferences')
+      .select('*')
+      .eq('user_id', user.value.id)
+      .single();
+
+    if (prefError) throw prefError;
+    userPreferences.value = data;
+    return data;
+  };
+
+  // Registration Flow
+  const registerWithEmailAndPassword = async (email: string, password: string) => {
+    loading.value = true;
+    error.value = '';
+
+    try {
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+
+      if (signUpError) throw signUpError;
+
+      // Create initial profile
+      if (data.user) {
+        await supabase.from('profiles').insert({
+          id: data.user.id,
+          email: data.user.email,
+          onboarding_completed: false,
+        });
+
+        // Create default preferences
+        await supabase.from('user_preferences').insert({
+          user_id: data.user.id,
+          email_notifications: true,
+          weekly_digest: true,
+          theme: 'system',
+        });
+      }
+
+      return { data, error: null };
+    } catch (err: any) {
+      error.value = err.message;
+      return { data: null, error: err };
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  // Login Flow
   const signInWithEmailAndPassword = async (email: string, password: string) => {
     loading.value = true;
     error.value = '';
@@ -44,175 +206,51 @@ export const useAuth = () => {
         email,
         password,
       });
-      
+
       if (signInError) throw signInError;
 
-      if (data?.session) {
-        // Update user state
-        user.value = data.user;
-        return data;
-      } else {
-        throw new Error('No session data returned');
+      // Fetch profile and preferences
+      if (data.user) {
+        await Promise.all([
+          fetchUserProfile(),
+          fetchUserPreferences(),
+        ]);
       }
-    } catch(err) {
-      error.value = err instanceof Error ? err.message : 'An error occurred during sign in';
-      throw err;
+
+      return { data, error: null };
+    } catch (err: any) {
+      error.value = err.message;
+      return { data: null, error: err };
     } finally {
       loading.value = false;
     }
   };
 
-  const checkSession = async () => {
-    // Skip session check on the server side
-    if (!import.meta.client) return true;
-
-    try {
-      // Attempt to retrieve the current session
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    
-      // If there's an error retrieving the session, throw it
-      if (sessionError) throw sessionError;
-
-      // If no session is found, clear user and return false
-      if (!session) {
-        user.value = null;
-        return false;
-      }
-
-      // Check if session is expired
-      const now = Math.floor(Date.now() / 1000);
-      if (session.expires_at && session.expires_at < now) {
-        // Try to refresh the session
-        const { data: { session: refreshedSession }, error: refreshError } = 
-          await supabase.auth.refreshSession();
-        
-        if (refreshError || !refreshedSession) {
-          user.value = null;
-          return false;
-        }
-
-        // Update user with refreshed session
-        user.value = refreshedSession.user;
-        return true;
-      }
-
-      // Update user value to ensure it's always in sync with the session
-      user.value = session.user;
-      error.value = '';
-      return true;
-
-    } catch (err) {
-      // Handle the error and set it to the error ref
-      if (err instanceof Error) {
-        error.value = err.message;
-      } else {
-        error.value = 'An unexpected error occurred while checking the session';
-      }
-      user.value = null;
-      return false;
-    }
-  };
-
-  const signOut = async () => {
-    loading.value = true;
-    error.value = '';
-    
-    try {
-      // Sign out from Supabase
-      const { error: signOutError } = await supabase.auth.signOut({
-        scope: 'global', // This will clear all sessions across all tabs/windows
-      });
-      if (signOutError) throw signOutError;
-      
-      // Clear user state
-      user.value = null;
-
-      // Clear any stored routes
-      if (import.meta.client) {
-        localStorage.removeItem('intendedRoute');
-      }
-
-      // Clear cookies manually
-      const cookies = useCookie('sb-');
-      if (cookies.value) {
-        cookies.value = null;
-      }
-
-      // Force reload to clear any remaining state
-      if (import.meta.client) {
-        window.location.href = '/auth/login';
-      }
-    } catch (err) {
-      error.value = err instanceof Error ? err.message : 'An error occurred during sign out';
-      throw err;
-    } finally {
-      loading.value = false;
-    }
-  };
-
-  const signInWithOAuth = async (provider: 'github' | 'google' | 'facebook') => {
+  // Social Authentication
+  const signInWithSocialProvider = async (provider: Provider) => {
     loading.value = true;
     error.value = '';
 
     try {
-      const { data, error: signInError } = await supabase.auth.signInWithOAuth({
+      const { data, error: socialError } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent',
-          },
         },
       });
 
-      if (signInError) throw signInError;
-      
-      return data;
-    } catch (err) {
-      error.value = err instanceof Error ? err.message : 'An error occurred during OAuth sign in';
-      throw err;
+      if (socialError) throw socialError;
+      return { data, error: null };
+    } catch (err: any) {
+      error.value = err.message;
+      return { data: null, error: err };
     } finally {
       loading.value = false;
     }
   };
 
-  const signUp = async (email: string, password: string) => {
-    loading.value = true;
-    error.value = '';
-    console.log({ email, password });
-    try {
-      const { data, error: signUpError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/confirm`,
-        },
-      });
-
-      if (signUpError) {
-        console.error('SignUp Error:', signUpError);
-        throw signUpError;
-      }
-
-      if (data?.user?.identities?.length === 0) {
-        throw new Error('An account with this email already exists.');
-      }
-      
-      return data;
-    } catch (err) {
-      if (err instanceof Error) {
-        error.value = err.message;
-      } else {
-        error.value = 'An unexpected error occurred';
-      }
-      throw err;
-    } finally {
-      loading.value = false;
-    }
-  };
-
-  const sendPasswordResetEmail = async (email: string) => {
+  // Password Recovery
+  const resetPassword = async (email: string) => {
     loading.value = true;
     error.value = '';
 
@@ -222,47 +260,186 @@ export const useAuth = () => {
       });
 
       if (resetError) throw resetError;
-
-    } catch (err) {
-      error.value = err instanceof Error ? err.message : 'An error occurred sending reset email';
-      throw err;
+      return { error: null };
+    } catch (err: any) {
+      error.value = err.message;
+      return { error: err };
     } finally {
       loading.value = false;
     }
   };
 
-  const verifyEmail = async (token: string) => {
+  const updatePassword = async (newPassword: string) => {
     loading.value = true;
     error.value = '';
 
     try {
-      const { error: verifyError } = await supabase.auth.verifyOtp({
-        token_hash: token,
-        type: 'email',
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: newPassword,
       });
 
-      if (verifyError) throw verifyError;
-
-    } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Failed to verify email';
-      throw err;
+      if (updateError) throw updateError;
+      return { error: null };
+    } catch (err: any) {
+      error.value = err.message;
+      return { error: err };
     } finally {
       loading.value = false;
     }
   };
 
+  // Onboarding Flow
+  const updateProfile = async (profile: Partial<UserProfile>) => {
+    if (!user.value?.id) throw new Error('No user logged in');
+
+    loading.value = true;
+    error.value = '';
+
+    try {
+      const { data, error: updateError } = await supabase
+        .from('profiles')
+        .update(profile)
+        .eq('id', user.value.id)
+        .select()
+        .single();
+
+      if (updateError) throw updateError;
+      userProfile.value = data;
+      return { data, error: null };
+    } catch (err: any) {
+      error.value = err.message;
+      return { data: null, error: err };
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  const updatePreferences = async (preferences: Partial<UserPreferences>) => {
+    if (!user.value?.id) throw new Error('No user logged in');
+
+    loading.value = true;
+    error.value = '';
+
+    try {
+      const { data, error: updateError } = await supabase
+        .from('user_preferences')
+        .update(preferences)
+        .eq('user_id', user.value.id)
+        .select()
+        .single();
+
+      if (updateError) throw updateError;
+      userPreferences.value = data;
+      return { data, error: null };
+    } catch (err: any) {
+      error.value = err.message;
+      return { data: null, error: err };
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  const completeOnboarding = async () => {
+    if (!user.value?.id) throw new Error('No user logged in');
+
+    loading.value = true;
+    error.value = '';
+
+    try {
+      const { data, error: updateError } = await supabase
+        .from('profiles')
+        .update({ onboarding_completed: true })
+        .eq('id', user.value.id)
+        .select()
+        .single();
+
+      if (updateError) throw updateError;
+      userProfile.value = data;
+      return { data, error: null };
+    } catch (err: any) {
+      error.value = err.message;
+      return { data: null, error: err };
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  // Session cleanup
+  const signOut = async () => {
+    loading.value = true;
+    error.value = '';
+
+    try {
+      const { error: signOutError } = await supabase.auth.signOut();
+      if (signOutError) throw signOutError;
+
+      // Clear local state
+      userProfile.value = null;
+      userPreferences.value = null;
+      
+      // Redirect to login
+      await router.push('/auth/login');
+    } catch (err: any) {
+      error.value = err.message;
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  // Auth state change listener
+  const setupAuthListener = () => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      user.value = session?.user || null;
+
+      switch (event) {
+      case 'SIGNED_IN':
+        if (session?.user) {
+          await Promise.all([
+            fetchUserProfile(),
+            fetchUserPreferences(),
+          ]);
+        }
+        break;
+      case 'SIGNED_OUT':
+        userProfile.value = null;
+        userPreferences.value = null;
+        await router.push('/auth/login');
+        break;
+      case 'USER_UPDATED':
+        if (session?.user) {
+          await fetchUserProfile();
+        }
+        break;
+      case 'PASSWORD_RECOVERY':
+        await router.push('/auth/reset-password');
+        break;
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  };
+
   return {
     user,
+    userProfile,
+    userPreferences,
     loading,
     error,
     isAuthenticated,
-    signInWithEmailAndPassword,
-    signInWithOAuth,
-    signOut,
-    sendPasswordResetEmail,
-    signUp,
     checkSession,
+    refreshSession,
+    registerWithEmailAndPassword,
+    signInWithEmailAndPassword,
+    signInWithSocialProvider,
+    resetPassword,
+    updatePassword,
+    updateProfile,
+    updatePreferences,
+    completeOnboarding,
+    signOut,
     setupAuthListener,
-    verifyEmail,
+    fetchUserProfile,
   };
 };
